@@ -3,6 +3,7 @@ import './styles/main.css'
 import { ReactNode } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 
+import { Home } from '@/views/home'
 import { Login } from '@/views/login'
 import { Register } from '@/views/register'
 
@@ -28,22 +29,7 @@ const App = () => {
             path="/"
             element={
               <ProtectedRoute>
-                <div className="p-8">
-                  <h1 className="text-4xl font-bold">Dashboard</h1>
-                  <p className="mt-4 text-gray-400">
-                    Willkommen bei ConcertHub!
-                  </p>
-                  <button
-                    onClick={() =>
-                      import('@/shared/api/firebase/config').then((m) =>
-                        m.auth.signOut()
-                      )
-                    }
-                    className="mt-8 px-4 py-2 bg-red-600 rounded-lg"
-                  >
-                    Abmelden
-                  </button>
-                </div>
+                <Home />
               </ProtectedRoute>
             }
           />

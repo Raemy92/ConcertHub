@@ -11,3 +11,19 @@ export interface AuthCredentials {
   password: string
   displayName?: string
 }
+
+export interface Concert {
+  id?: string
+  band: string
+  openingBands: string[]
+  genres: string[]
+  location: string
+  date: string // ISO Format YYYY-MM-DD
+  startTime: string // HH:mm
+  endTime: string // HH:mm
+  price: number
+  createdBy: string // User UID
+  createdAt: number
+  updatedAt: number
+  isArchived: boolean
+}
