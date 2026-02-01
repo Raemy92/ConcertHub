@@ -23,10 +23,13 @@ export const ParticipationToggle = ({
     if (!user) return
     setLoading(true)
     try {
+      const resolvedDisplayName =
+        user.displayName?.trim() || user.email?.trim() || 'Unbekannter Benutzer'
+
       const participationData: Omit<Participation, 'id' | 'joinedAt'> = {
         concertId,
         userId: user.uid,
-        displayName: user.displayName || user.email || 'Unbekannter Benutzer',
+        displayName: resolvedDisplayName,
         isDriver,
         ...(isDriver && { availableSeats: seats })
       }
