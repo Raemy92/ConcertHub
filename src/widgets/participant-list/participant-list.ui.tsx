@@ -21,6 +21,9 @@ export const ParticipantList = ({
     return participations.find((p) => p.userId === driverId)
   }
 
+  const getName = (p: Participation) =>
+    p.displayName?.trim() || 'Unbekannter Benutzer'
+
   return (
     <div className="space-y-6">
       {!onlyDrivers && (
@@ -45,7 +48,7 @@ export const ParticipantList = ({
                     ) : (
                       <User className="w-4 h-4 text-gray-500" />
                     )}
-                    <span>{p.displayName}</span>
+                    <span>{getName(p)}</span>
 
                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-10">
                       <div className="bg-black border border-gray-700 text-xs py-2 px-3 rounded shadow-xl whitespace-nowrap">
@@ -57,7 +60,9 @@ export const ParticipantList = ({
                             <p className="text-gray-400">
                               Mitfahrer:{' '}
                               {getPassengersForDriver(p.userId)
-                                .map((m) => m.displayName)
+                                .map(
+                                  (m) => m.displayName?.trim() || 'Unbekannt'
+                                )
                                 .join(', ') || 'Keine'}
                             </p>
                           </div>
@@ -68,7 +73,7 @@ export const ParticipantList = ({
                             </p>
                             <p className="text-gray-400">
                               {driver
-                                ? `Fährt mit bei: ${driver.displayName}`
+                                ? `Fährt mit bei: ${getName(driver)}`
                                 : 'Keinem Auto zugewiesen'}
                             </p>
                           </div>
@@ -105,7 +110,7 @@ export const ParticipantList = ({
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center gap-2 font-bold text-sm">
                       <Car className="w-4 h-4 text-red-500" />
-                      {driver.displayName}
+                      {getName(driver)}
                     </div>
                     <span className="text-[10px] bg-gray-800 text-gray-400 px-2 py-0.5 rounded uppercase">
                       {passengers.length} / {driver.availableSeats} Plätze
@@ -118,7 +123,7 @@ export const ParticipantList = ({
                         className="text-xs text-gray-400 flex items-center gap-1"
                       >
                         <User className="w-3 h-3" />
-                        {pass.displayName}
+                        {getName(pass)}
                       </div>
                     ))}
                     {Array.from({ length: freeSeats }).map((_, i) => (

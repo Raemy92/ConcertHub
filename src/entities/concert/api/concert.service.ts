@@ -4,6 +4,7 @@ import {
   deleteDoc,
   doc,
   DocumentReference,
+  getDoc,
   getDocs,
   onSnapshot,
   orderBy,
@@ -29,6 +30,22 @@ const getParticipationRef = (
   doc(db, PARTICIPATIONS_COLLECTION, createParticipationId(concertId, userId))
 
 const getTodayDateString = (): string => new Date().toISOString().split('T')[0]
+
+const resolveUserDisplayName = async (
+  userId: string,
+  fallback?: string
+): Promise<string> => {
+  try {
+    const userDoc = await getDoc(doc(db, 'users', userId))
+    const displayName = userDoc.exists()
+      ? (userDoc.data().displayName as string | undefined)
+      : undefined
+
+    return displayName?.trim() || fallback?.trim() || 'Unbekannter Benutzer'
+  } catch {
+    return fallback?.trim() || 'Unbekannter Benutzer'
+  }
+}
 
 export const concertService = {
   async getAllUpcoming(): Promise<Concert[]> {
@@ -83,8 +100,14 @@ export const concertService = {
     const participationId = createParticipationId(concertId!, userId)
     const participationRef = getParticipationRef(concertId!, userId)
 
+    const displayName = await resolveUserDisplayName(
+      userId,
+      participation.displayName
+    )
+
     const newParticipation = {
       ...participation,
+      displayName,
       joinedAt: Date.now()
     }
     await setDoc(participationRef, newParticipation)
@@ -94,7 +117,6 @@ export const concertService = {
   async leaveConcert(concertId: string, userId: string): Promise<void> {
     const participationRef = getParticipationRef(concertId, userId)
 
-    // Entferne alle Passagiere, die diesem Fahrer zugewiesen waren
     const passengersQuery = query(
       collection(db, PARTICIPATIONS_COLLECTION),
       where('concertId', '==', concertId),
@@ -118,11 +140,33 @@ export const concertService = {
       where('concertId', '==', concertId)
     )
 
-    return onSnapshot(q, (snapshot) => {
+    return onSnapshot(q, async (snapshot) => {
       const participations = snapshot.docs.map((d) => ({
         id: d.id,
         ...d.data()
       })) as Participation[]
+
+      const fixes = participations
+        .filter((p) => !p.displayName || p.displayName.trim().length === 0)
+        .map(async (p) => {
+          const resolved = await resolveUserDisplayName(p.userId)
+          p.displayName = resolved
+          updateDoc(
+            doc(
+              db,
+              PARTICIPATIONS_COLLECTION,
+              createParticipationId(concertId, p.userId)
+            ),
+            { displayName: resolved }
+          ).catch(() => {
+            // TODO: Catch error logging
+          })
+        })
+
+      if (fixes.length > 0) {
+        await Promise.all(fixes)
+      }
+
       callback(participations)
     })
   },
