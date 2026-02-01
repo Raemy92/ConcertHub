@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/Raemy92/ConcertHub/compare/v1.0.0...v1.0.1) (2026-02-01)
+
+
+### Bug Fixes
+
+* **participation:** show displayName not email ([9ef8865](https://github.com/Raemy92/ConcertHub/commit/9ef8865e645bf7a9390356a6629f246772482900))
+
 # 1.0.0 (2026-02-01)
 
 
