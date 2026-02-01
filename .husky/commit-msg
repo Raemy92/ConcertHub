@@ -1,0 +1,9 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Release-Commits von semantic-release (beginnt mit 'chore(release):') überspringen
+if grep -q "^chore(release):" "$1"; then
+  exit 0
+fi
+
+npm run commitlint "$1"

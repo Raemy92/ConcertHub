@@ -1,0 +1,51 @@
+import { defineConfig, loadEnv } from 'vite'
+import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
+import path from 'path'
+import { VitePWA } from 'vite-plugin-pwa'
+
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+
+  return {
+    plugins: [
+      react(),
+      tailwindcss(),
+      VitePWA({
+        registerType: 'autoUpdate',
+        manifest: {
+          name: 'ConcertHub',
+          short_name: 'ConcertHub',
+          start_url: '.',
+          display: 'standalone',
+          background_color: '#111827',
+          theme_color: '#dc2626',
+          icons: [
+            {
+              src: 'icon-192.png',
+              sizes: '192x192',
+              type: 'image/png'
+            },
+            {
+              src: 'icon-512.png',
+              sizes: '512x512',
+              type: 'image/png'
+            }
+          ]
+        }
+      })
+    ],
+    optimizeDeps: {
+      exclude: ['lucide-react']
+    },
+    envDir: './environments',
+    define: {
+      __APP_ENV__: JSON.stringify(env.NODE_ENV)
+    },
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, './src')
+      }
+    }
+  }
+})
