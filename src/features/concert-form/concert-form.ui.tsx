@@ -1,7 +1,7 @@
 import {
   Calendar,
   Clock,
-  DollarSign,
+  Coins,
   MapPin,
   Music,
   Plus,
@@ -102,12 +102,8 @@ export const ConcertForm = ({
   }
 
   return (
-    <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 w-full max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold text-white mb-6">
-        {concert ? 'Konzert bearbeiten' : 'Neues Konzert hinzufügen'}
-      </h2>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="w-full">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-400">
@@ -120,7 +116,7 @@ export const ConcertForm = ({
                 type="text"
                 value={band}
                 onChange={(e) => setBand(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 px-9 text-white focus:ring-2 focus:ring-red-600 outline-none"
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 pl-9 pr-2 text-white focus:ring-2 focus:ring-red-600 outline-none"
                 placeholder="Band Name"
               />
             </div>
@@ -135,7 +131,7 @@ export const ConcertForm = ({
                 type="text"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 px-9 text-white focus:ring-2 focus:ring-red-600 outline-none"
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 pl-9 pr-2 text-white focus:ring-2 focus:ring-red-600 outline-none"
                 placeholder="Veranstaltungsort"
               />
             </div>
@@ -150,7 +146,7 @@ export const ConcertForm = ({
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 px-9 text-white focus:ring-2 focus:ring-red-600 outline-none"
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 pl-9 pr-2 text-white focus:ring-2 focus:ring-red-600 outline-none"
               />
             </div>
           </div>
@@ -160,15 +156,15 @@ export const ConcertForm = ({
               Preis (CHF)
             </label>
             <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
+              <Coins className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
               <input
                 required
                 type="number"
                 step="0.05"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 px-9 text-white focus:ring-2 focus:ring-red-600 outline-none"
-                placeholder="0.00"
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 pl-9 pr-2 text-white focus:ring-2 focus:ring-red-600 outline-none"
+                placeholder="69.00"
               />
             </div>
           </div>
@@ -184,7 +180,7 @@ export const ConcertForm = ({
                 type="time"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 px-9 text-white focus:ring-2 focus:ring-red-600 outline-none"
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 pl-9 pr-2 text-white focus:ring-2 focus:ring-red-600 outline-none"
               />
             </div>
           </div>
@@ -198,7 +194,7 @@ export const ConcertForm = ({
                 type="time"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 px-9 text-white focus:ring-2 focus:ring-red-600 outline-none"
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 pl-9 pr-2 text-white focus:ring-2 focus:ring-red-600 outline-none"
               />
             </div>
           </div>

@@ -1,4 +1,5 @@
-import { onAuthStateChanged, User } from 'firebase/auth'
+import { onAuthStateChanged } from 'firebase/auth'
+import { doc, getDoc } from 'firebase/firestore'
 import {
   createContext,
   ReactNode,
@@ -7,10 +8,17 @@ import {
   useState
 } from 'react'
 
-import { auth } from '@/shared/api/firebase/config'
+import { auth, db } from '@/shared/api/firebase/config'
+
+export interface AppUser {
+  uid: string
+  email: string | null
+  displayName: string
+  photoURL: string | null
+}
 
 interface AuthContextType {
-  user: User | null
+  user: AppUser | null
   loading: boolean
 }
 
@@ -20,12 +28,31 @@ const AuthContext = createContext<AuthContextType>({
 })
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<AppUser | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user)
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        let displayName = firebaseUser.displayName
+
+        if (!displayName) {
+          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid))
+          if (userDoc.exists()) {
+            displayName = userDoc.data().displayName
+          }
+        }
+
+        setUser({
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          displayName:
+            displayName || firebaseUser.email || 'Unbekannter Benutzer',
+          photoURL: firebaseUser.photoURL
+        })
+      } else {
+        setUser(null)
+      }
       setLoading(false)
     })
 

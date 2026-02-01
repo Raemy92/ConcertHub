@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 
-import { RegisterForm } from '@/features/register-form/register-form.ui'
+import { RegisterForm } from '@/features/register-form'
 
 export const Register = () => {
   const navigate = useNavigate()

@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 
-import { LoginForm } from '@/features/login-form/login-form.ui'
+import { LoginForm } from '@/features/login-form'
 
 export const Login = () => {
   const navigate = useNavigate()

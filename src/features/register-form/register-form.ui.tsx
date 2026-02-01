@@ -2,6 +2,7 @@ import { Lock, Mail, User, UserPlus } from 'lucide-react'
 import { FormEvent, useState } from 'react'
 
 import { authService } from '@/shared/auth/auth-service'
+import { FormInput } from '@/shared/ui'
 
 interface RegisterFormProps {
   onSuccess?: () => void
@@ -52,73 +53,45 @@ export const RegisterForm = ({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            Anzeigename
-          </label>
-          <div className="relative">
-            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
-            <input
-              type="text"
-              value={displayName}
-              onChange={(event) => setDisplayName(event.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg py-3 px-10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
-              placeholder="Dein Name"
-              required
-            />
-          </div>
-        </div>
+        <FormInput
+          label="Anzeigename"
+          type="text"
+          value={displayName}
+          onChange={setDisplayName}
+          placeholder="Dein Name"
+          required
+          icon={User}
+        />
 
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            E-Mail
-          </label>
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
-            <input
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg py-3 px-10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
-              placeholder="deine@email.de"
-              required
-            />
-          </div>
-        </div>
+        <FormInput
+          label="E-Mail"
+          type="email"
+          value={email}
+          onChange={setEmail}
+          placeholder="deine@email.de"
+          required
+          icon={Mail}
+        />
 
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            Passwort
-          </label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
-            <input
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg py-3 px-10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
-              placeholder="••••••••"
-              required
-            />
-          </div>
-        </div>
+        <FormInput
+          label="Passwort"
+          type="password"
+          value={password}
+          onChange={setPassword}
+          placeholder="••••••••"
+          required
+          icon={Lock}
+        />
 
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            Passwort bestätigen
-          </label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(event) => setConfirmPassword(event.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg py-3 px-10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
-              placeholder="••••••••"
-              required
-            />
-          </div>
-        </div>
+        <FormInput
+          label="Passwort bestätigen"
+          type="password"
+          value={confirmPassword}
+          onChange={setConfirmPassword}
+          placeholder="••••••••"
+          required
+          icon={Lock}
+        />
 
         {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
@@ -139,7 +112,7 @@ export const RegisterForm = ({
       </form>
 
       <p className="mt-8 text-center text-gray-400">
-        Bereits ein Konto?{' '}
+        Bereits ein Konto oder mit deinem Google-Konto registrieren?{' '}
         <button
           onClick={onSwitchToLogin}
           className="text-red-500 hover:underline font-medium"

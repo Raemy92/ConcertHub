@@ -3,6 +3,7 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
+  updateProfile,
   User as FirebaseUser
 } from 'firebase/auth'
 import { doc, setDoc } from 'firebase/firestore'
@@ -42,6 +43,11 @@ export const authService = {
       email,
       password
     )
+
+    if (displayName) {
+      await updateProfile(userCredential.user, { displayName })
+    }
+
     await saveUser(userCredential.user, displayName)
     return userCredential
   },
