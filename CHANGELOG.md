@@ -1,3 +1,15 @@
+# [1.1.0](https://github.com/Raemy92/ConcertHub/compare/v1.0.1...v1.1.0) (2026-02-02)
+
+
+### Bug Fixes
+
+* **concert-detail:** car mgmt for drivers only ([21696e3](https://github.com/Raemy92/ConcertHub/commit/21696e37a883d5e1211173c6496d8e24c8246729))
+
+
+### Features
+
+* **concert-detail:** add ticket management ([83e33e3](https://github.com/Raemy92/ConcertHub/commit/83e33e3fd7e9c14355a67e76d0ea38cdc98e03d0))
+
 ## [1.0.1](https://github.com/Raemy92/ConcertHub/compare/v1.0.0...v1.0.1) (2026-02-01)
 
 
