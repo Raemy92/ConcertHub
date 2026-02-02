@@ -1,17 +1,18 @@
-import { Car, Info, LucideIcon, Users } from 'lucide-react'
+import { Car, Info, LucideIcon, Ticket, Users } from 'lucide-react'
 import { useState } from 'react'
 
 import { useAuth } from '@/app/providers/auth.provider'
 import { Concert, Participation } from '@/entities'
 import { CarManagement } from '@/features/car-management'
 import { ParticipantList } from '@/widgets/participant-list'
+import { TicketList } from '@/widgets/ticket-list'
 
 interface ConcertDetailsProps {
   concert: Concert
   participations: Participation[]
 }
 
-type Tab = 'info' | 'participants' | 'logistics'
+type Tab = 'info' | 'participants' | 'tickets' | 'logistics'
 
 interface TabButtonProps {
   tab: Tab
@@ -70,6 +71,13 @@ export const ConcertDetails = ({
           onClick={setActiveTab}
           icon={Users}
           label={`Teilnehmer (${participations.length})`}
+        />
+        <TabButton
+          tab="tickets"
+          activeTab={activeTab}
+          onClick={setActiveTab}
+          icon={Ticket}
+          label="Tickets"
         />
         {userParticipation?.isDriver && (
           <TabButton
@@ -157,6 +165,10 @@ export const ConcertDetails = ({
 
         {activeTab === 'participants' && (
           <ParticipantList participations={participations} />
+        )}
+
+        {activeTab === 'tickets' && (
+          <TicketList concert={concert} participations={participations} />
         )}
 
         {activeTab === 'logistics' && (

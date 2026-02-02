@@ -183,5 +183,14 @@ export const concertService = {
   async removePassenger(concertId: string, passengerId: string): Promise<void> {
     const participationRef = getParticipationRef(concertId, passengerId)
     await updateDoc(participationRef, { driverId: null })
+  },
+
+  async updateTicketStatus(
+    concertId: string,
+    userId: string,
+    hasTicket: boolean
+  ): Promise<void> {
+    const participationRef = getParticipationRef(concertId, userId)
+    await updateDoc(participationRef, { hasTicket })
   }
 }
