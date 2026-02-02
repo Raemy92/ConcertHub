@@ -29,4 +29,5 @@ export interface Participation {
   availableSeats?: number
   driverId?: string
   joinedAt: number
+  hasTicket?: boolean
 }
