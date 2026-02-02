@@ -71,13 +71,15 @@ export const ConcertDetails = ({
           icon={Users}
           label={`Teilnehmer (${participations.length})`}
         />
-        <TabButton
-          tab="logistics"
-          activeTab={activeTab}
-          onClick={setActiveTab}
-          icon={Car}
-          label="Mitfahrzentrale"
-        />
+        {userParticipation?.isDriver && (
+          <TabButton
+            tab="logistics"
+            activeTab={activeTab}
+            onClick={setActiveTab}
+            icon={Car}
+            label="Mitfahrzentrale"
+          />
+        )}
       </div>
 
       <div className="animate-in fade-in duration-300">
