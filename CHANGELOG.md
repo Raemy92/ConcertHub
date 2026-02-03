@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/Raemy92/ConcertHub/compare/v1.1.0...v1.1.1) (2026-02-03)
+
+
+### Bug Fixes
+
+* **concert:** doors opening and event url ([c212315](https://github.com/Raemy92/ConcertHub/commit/c212315c1fdf1720f31d32e0b46132ababc563f9))
+
 # [1.1.0](https://github.com/Raemy92/ConcertHub/compare/v1.0.1...v1.1.0) (2026-02-02)
 
 
