@@ -13,6 +13,8 @@ export interface Concert {
   date: string
   startTime: string
   endTime: string
+  doors: string
+  eventUrl?: string
   price: number
   createdBy: string
   createdAt: number
