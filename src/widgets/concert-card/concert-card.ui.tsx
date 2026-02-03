@@ -2,6 +2,7 @@ import {
   Calendar,
   ChevronRight,
   Clock,
+  DoorOpen,
   Edit2,
   MapPin,
   Users
@@ -95,6 +96,10 @@ export const ConcertCard = ({ concert, onEdit }: ConcertCardProps) => {
           <div className="flex items-center gap-2 text-gray-400 text-sm">
             <Calendar className="w-4 h-4 text-red-500" />
             {formattedDate}
+          </div>
+          <div className="flex items-center gap-2 text-gray-400 text-sm">
+            <DoorOpen className="w-4 h-4 text-red-500" />
+            {concert.doors}
           </div>
           <div className="flex items-center gap-2 text-gray-400 text-sm">
             <Clock className="w-4 h-4 text-red-500" />

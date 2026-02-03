@@ -147,6 +147,12 @@ export const ConcertDetails = ({
               </div>
               <div>
                 <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">
+                  Türöffnung
+                </h4>
+                <p className="text-white">{concert.doors}</p>
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">
                   Zeit
                 </h4>
                 <p className="text-white">
@@ -159,6 +165,20 @@ export const ConcertDetails = ({
                 </h4>
                 <p className="text-white">{concert.price.toFixed(2)} CHF</p>
               </div>
+              {concert.eventUrl && concert.eventUrl.length && (
+                <div>
+                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">
+                    Link zum Event
+                  </h4>
+                  <a
+                    className="block text-white underline truncate"
+                    href={concert.eventUrl}
+                    target="_blank"
+                  >
+                    {concert.eventUrl}
+                  </a>
+                </div>
+              )}
             </div>
           </div>
         )}

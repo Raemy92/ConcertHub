@@ -2,6 +2,7 @@ import {
   Calendar,
   Clock,
   Coins,
+  Link,
   MapPin,
   Music,
   Plus,
@@ -37,7 +38,9 @@ export const ConcertForm = ({
   const [date, setDate] = useState(concert?.date || '')
   const [startTime, setStartTime] = useState(concert?.startTime || '')
   const [endTime, setEndTime] = useState(concert?.endTime || '')
+  const [doors, setDoors] = useState(concert?.doors || '')
   const [price, setPrice] = useState(concert?.price?.toString() || '')
+  const [eventUrl, setEventUrl] = useState(concert?.eventUrl || '')
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -57,6 +60,8 @@ export const ConcertForm = ({
       date,
       startTime,
       endTime,
+      doors,
+      eventUrl,
       price: Number(price),
       createdBy: concert?.createdBy || user.uid
     }
@@ -169,32 +174,64 @@ export const ConcertForm = ({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-400">
-              Startzeit
-            </label>
-            <div className="relative">
-              <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
-              <input
-                required
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 pl-9 pr-2 text-white focus:ring-2 focus:ring-red-600 outline-none"
-              />
+          <div className="grid grid-cols-1 md:col-span-2 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-400">
+                Türöffnung
+              </label>
+              <div className="relative">
+                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
+                <input
+                  required
+                  type="time"
+                  value={doors}
+                  onChange={(e) => setDoors(e.target.value)}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 pl-9 pr-2 text-white focus:ring-2 focus:ring-red-600 outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-400">Start</label>
+              <div className="relative">
+                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
+                <input
+                  required
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 pl-9 pr-2 text-white focus:ring-2 focus:ring-red-600 outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-400">Ende</label>
+              <div className="relative">
+                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
+                <input
+                  required
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 pl-9 pr-2 text-white focus:ring-2 focus:ring-red-600 outline-none"
+                />
+              </div>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-400">Endzeit</label>
+          <div className="md:col-span-2">
+            <label className="text-sm font-medium text-gray-400">
+              Link zum Event
+            </label>
             <div className="relative">
-              <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
+              <Link className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
               <input
-                required
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
+                type="url"
+                value={eventUrl}
+                onChange={(e) => setEventUrl(e.target.value)}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 pl-9 pr-2 text-white focus:ring-2 focus:ring-red-600 outline-none"
+                placeholder="https://example.com"
               />
             </div>
           </div>
