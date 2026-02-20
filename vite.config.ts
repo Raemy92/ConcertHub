@@ -77,7 +77,8 @@ export default defineConfig(({ mode }) => {
     },
     envDir: './environments',
     define: {
-      __APP_ENV__: JSON.stringify(env.NODE_ENV)
+      __APP_ENV__: JSON.stringify(env.NODE_ENV),
+      __APP_VERSION__: JSON.stringify(process.env.npm_package_version)
     },
     resolve: {
       alias: {
