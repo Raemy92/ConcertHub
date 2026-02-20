@@ -38,14 +38,17 @@ export const Home = () => {
     <div className="min-h-screen bg-black text-white p-4 md:p-8">
       <header className="max-w-7xl mx-auto flex justify-between items-center mb-12">
         <div>
-          <h1 className="text-4xl font-semibold tracking-tighter leading-none text-white">
-            Concert
-            <span className="ml-2 font-semibold inline-flex items-center rounded-md bg-red-600 px-1.5 py-0.5">
-              <span className="text-black">hub</span>
-            </span>
-          </h1>
+          <div className="flex gap-2 items-end">
+            <h1 className="text-4xl font-semibold tracking-tighter leading-none text-white">
+              Concert
+              <span className="ml-2 font-semibold inline-flex items-center rounded-md bg-red-600 px-1.5 py-0.5">
+                <span className="text-black">hub</span>
+              </span>
+            </h1>
+            <span className="text-gray-600 text-xs">{__APP_VERSION__}</span>
+          </div>
 
-          <p className="text-gray-400 text-sm mt-1">
+          <p className="text-gray-400 text-sm mt-2">
             Willkommen zurück, {user?.displayName}
           </p>
         </div>
