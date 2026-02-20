@@ -13,10 +13,47 @@ export default defineConfig(({ mode }) => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
+        devOptions: {
+          enabled: true
+        },
+        workbox: {
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+          runtimeCaching: [
+            {
+              urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'google-fonts-cache',
+                expiration: {
+                  maxEntries: 10,
+                  maxAgeSeconds: 60 * 60 * 24 * 365 // <== 365 days
+                },
+                cacheableResponse: {
+                  statuses: [0, 200]
+                }
+              }
+            },
+            {
+              urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'gstatic-fonts-cache',
+                expiration: {
+                  maxEntries: 10,
+                  maxAgeSeconds: 60 * 60 * 24 * 365 // <== 365 days
+                },
+                cacheableResponse: {
+                  statuses: [0, 200]
+                }
+              }
+            }
+          ]
+        },
         manifest: {
           name: 'ConcertHub',
           short_name: 'ConcertHub',
-          start_url: '.',
+          description: 'Your ultimate concert scheduling app',
+          start_url: '/',
           display: 'standalone',
           background_color: '#111827',
           theme_color: '#dc2626',
@@ -40,7 +77,8 @@ export default defineConfig(({ mode }) => {
     },
     envDir: './environments',
     define: {
-      __APP_ENV__: JSON.stringify(env.NODE_ENV)
+      __APP_ENV__: JSON.stringify(env.NODE_ENV),
+      __APP_VERSION__: JSON.stringify(process.env.npm_package_version)
     },
     resolve: {
       alias: {

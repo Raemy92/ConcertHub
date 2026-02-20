@@ -8,6 +8,7 @@
       content="Plan concert adventures with your friends"
     />
     <meta name="theme-color" content="#1f2937" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta
       name="apple-mobile-web-app-status-bar-style"
@@ -15,19 +16,13 @@
     />
     <meta name="apple-mobile-web-app-title" content="ConcertHub" />
 
-    <link rel="manifest" href="/manifest.json" />
     <link rel="icon" type="image/svg+xml" href="/concert-icon.svg" />
-    <link rel="apple-touch-icon" href="/concert-icon-192.png" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
 
     <title>ConcertHub - Plan Your Concerts</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js')
-      }
-    </script>
   </body>
 </html>

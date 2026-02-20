@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "npm run format:fix && vite build",
-    "start": "vite start",
+    "start": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:update": "vitest run --update",

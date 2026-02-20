@@ -3,6 +3,7 @@ import './styles/main.css'
 import { ReactNode } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 
+import { OfflineStatus } from '@/shared/ui'
 import { Home } from '@/views/home'
 import { Login } from '@/views/login'
 import { Register } from '@/views/register'
@@ -21,6 +22,7 @@ const ProtectedRoute = ({ children }: { children: ReactNode }) => {
 const App = () => {
   return (
     <AuthProvider>
+      <OfflineStatus />
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
