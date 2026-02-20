@@ -1,3 +1,11 @@
+## [1.1.2](https://github.com/Raemy92/ConcertHub/compare/v1.1.1...v1.1.2) (2026-02-20)
+
+
+### Bug Fixes
+
+* **app:** add version number ([e33c321](https://github.com/Raemy92/ConcertHub/commit/e33c3213f4ac26b1df23e6773ebe9773124db780))
+* **pwa:** repair broken pwa config and add caching ([65db0e0](https://github.com/Raemy92/ConcertHub/commit/65db0e09e9d095e3982f0fb99cafc4efb29242fe))
+
 ## [1.1.1](https://github.com/Raemy92/ConcertHub/compare/v1.1.0...v1.1.1) (2026-02-03)
 
 
