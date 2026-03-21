@@ -56,7 +56,7 @@ export const ConcertCard = ({ concert, onEdit }: ConcertCardProps) => {
     <>
       <div
         onClick={handleDetailsClick}
-        className="bg-gray-900 border border-gray-800 rounded-2xl p-6 hover:border-red-600/50 transition-all group flex flex-col cursor-pointer hover:shadow-xl hover:shadow-red-900/10"
+        className="bg-gray-900 border border-gray-800 rounded-2xl p-4 md:p-6 hover:border-red-600/50 transition-all group flex flex-col cursor-pointer hover:shadow-xl hover:shadow-red-900/10"
       >
         <div className="flex justify-between items-start mb-4">
           <div className="flex-1">

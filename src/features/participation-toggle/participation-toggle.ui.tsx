@@ -24,26 +24,21 @@ export const ParticipationToggle = ({
 
   const handleJoin = async (isDriver: boolean, seats: number) => {
     if (!user) return
-    setLoading(true)
-    try {
-      const resolvedDisplayName =
-        user.displayName?.trim() || user.email?.trim() || 'Unbekannter Benutzer'
+    const resolvedDisplayName =
+      user.displayName?.trim() || user.email?.trim() || 'Unbekannter Benutzer'
 
-      const participationData: Omit<Participation, 'id' | 'joinedAt'> = {
-        concertId,
-        userId: user.uid,
-        displayName: resolvedDisplayName,
-        isDriver,
-        ...(isDriver && { availableSeats: seats })
-      }
-
-      await concertService.joinConcert(participationData)
-      setShowJoinModal(false)
-    } catch (error) {
-      console.error('Error joining concert:', error)
-    } finally {
-      setLoading(false)
+    const participationData: Omit<Participation, 'id' | 'joinedAt'> = {
+      concertId,
+      userId: user.uid,
+      displayName: resolvedDisplayName,
+      isDriver,
+      ...(isDriver && { availableSeats: seats })
     }
+
+    setShowJoinModal(false)
+    concertService.joinConcert(participationData).catch((error) => {
+      console.error('Error joining concert:', error)
+    })
   }
 
   const handleLeave = async () => {
