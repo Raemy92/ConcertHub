@@ -66,7 +66,7 @@ export const CarManagement = ({
                   <span className="text-sm font-medium">{p.displayName}</span>
                   <button
                     onClick={() => handleRemovePassenger(p.userId)}
-                    className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                    className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
                     title="Entfernen"
                   >
                     <X className="w-4 h-4" />

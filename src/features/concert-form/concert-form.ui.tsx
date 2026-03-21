@@ -15,6 +15,8 @@ import { useAuth } from '@/app/providers/auth.provider'
 import { Concert } from '@/entities'
 import { concertService } from '@/entities/concert'
 
+import { ArchiveConfirmModal } from './archive-confirm-modal.ui'
+
 interface ConcertFormProps {
   concert?: Concert
   onSuccess: () => void
@@ -44,6 +46,7 @@ export const ConcertForm = ({
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showArchiveConfirm, setShowArchiveConfirm] = useState(false)
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
@@ -244,6 +247,12 @@ export const ConcertForm = ({
               type="text"
               value={newOpeningBand}
               onChange={(e) => setNewOpeningBand(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  addOpeningBand()
+                }
+              }}
               className="flex-1 bg-gray-800 border border-gray-700 rounded-lg py-2 px-4 text-white focus:ring-2 focus:ring-red-600 outline-none"
               placeholder="Vorband hinzufügen"
             />
@@ -277,6 +286,12 @@ export const ConcertForm = ({
               type="text"
               value={newGenre}
               onChange={(e) => setNewGenre(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  addGenre()
+                }
+              }}
               className="flex-1 bg-gray-800 border border-gray-700 rounded-lg py-2 px-4 text-white focus:ring-2 focus:ring-red-600 outline-none"
               placeholder="Genre hinzufügen"
             />
@@ -327,17 +342,22 @@ export const ConcertForm = ({
         <div className="mt-8 pt-6 border-t border-gray-800">
           <button
             type="button"
-            onClick={async () => {
-              if (confirm('Möchtest du dieses Konzert wirklich löschen?')) {
-                await concertService.archive(concert.id!)
-                onSuccess()
-              }
-            }}
+            onClick={() => setShowArchiveConfirm(true)}
             className="flex items-center justify-center gap-2 text-red-500 hover:text-red-400 text-sm"
           >
             <Trash2 className="w-4 h-4" />
             Konzert archivieren (löschen)
           </button>
+
+          <ArchiveConfirmModal
+            isOpen={showArchiveConfirm}
+            onClose={() => setShowArchiveConfirm(false)}
+            onConfirm={async () => {
+              setShowArchiveConfirm(false)
+              await concertService.archive(concert.id!)
+              onSuccess()
+            }}
+          />
         </div>
       )}
     </div>
