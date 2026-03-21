@@ -6,6 +6,7 @@ import { Participation } from '@/entities'
 import { concertService } from '@/entities/concert/api/concert.service'
 
 import { JoinConcertModal } from './join-concert-modal.ui'
+import { LeaveConfirmModal } from './leave-confirm-modal.ui'
 
 interface ParticipationToggleProps {
   concertId: string
@@ -18,7 +19,8 @@ export const ParticipationToggle = ({
 }: ParticipationToggleProps) => {
   const { user } = useAuth()
   const [loading, setLoading] = useState(false)
-  const [showModal, setShowModal] = useState(false)
+  const [showJoinModal, setShowJoinModal] = useState(false)
+  const [showLeaveModal, setShowLeaveModal] = useState(false)
 
   const handleJoin = async (isDriver: boolean, seats: number) => {
     if (!user) return
@@ -36,7 +38,7 @@ export const ParticipationToggle = ({
       }
 
       await concertService.joinConcert(participationData)
-      setShowModal(false)
+      setShowJoinModal(false)
     } catch (error) {
       console.error('Error joining concert:', error)
     } finally {
@@ -47,6 +49,7 @@ export const ParticipationToggle = ({
   const handleLeave = async () => {
     if (!user) return
     setLoading(true)
+    setShowLeaveModal(false)
     try {
       await concertService.leaveConcert(concertId, user.uid)
     } catch (error) {
@@ -56,35 +59,40 @@ export const ParticipationToggle = ({
     }
   }
 
-  if (currentParticipation) {
-    return (
-      <button
-        onClick={handleLeave}
-        disabled={loading}
-        className="flex-1 flex items-center justify-center gap-2 bg-gray-800 hover:bg-red-900/40 text-red-500 px-4 py-2 rounded-lg font-bold transition-all border border-gray-700 hover:border-red-500/50 text-sm"
-      >
-        <UserMinus className="w-5 h-5" />
-        Absagen
-      </button>
-    )
-  }
-
   return (
     <>
-      <button
-        onClick={() => setShowModal(true)}
-        disabled={loading}
-        className="flex-1 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-bold transition-colors text-sm"
-      >
-        <UserCheck className="w-5 h-5" />
-        Dabei
-      </button>
+      {currentParticipation ? (
+        <button
+          onClick={() => setShowLeaveModal(true)}
+          disabled={loading}
+          className="flex-1 flex items-center justify-center gap-2 bg-gray-800 hover:bg-red-900/40 text-red-500 px-4 py-2 rounded-lg font-bold transition-all border border-gray-700 hover:border-red-500/50 text-sm"
+        >
+          <UserMinus className="w-5 h-5" />
+          Absagen
+        </button>
+      ) : (
+        <button
+          onClick={() => setShowJoinModal(true)}
+          disabled={loading}
+          className="flex-1 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-bold transition-colors text-sm"
+        >
+          <UserCheck className="w-5 h-5" />
+          Dabei
+        </button>
+      )}
 
       <JoinConcertModal
-        isOpen={showModal}
+        isOpen={showJoinModal}
         loading={loading}
-        onClose={() => setShowModal(false)}
+        onClose={() => setShowJoinModal(false)}
         onConfirm={handleJoin}
+      />
+
+      <LeaveConfirmModal
+        isOpen={showLeaveModal}
+        loading={loading}
+        onClose={() => setShowLeaveModal(false)}
+        onConfirm={handleLeave}
       />
     </>
   )
