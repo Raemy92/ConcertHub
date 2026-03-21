@@ -247,6 +247,12 @@ export const ConcertForm = ({
               type="text"
               value={newOpeningBand}
               onChange={(e) => setNewOpeningBand(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  addOpeningBand()
+                }
+              }}
               className="flex-1 bg-gray-800 border border-gray-700 rounded-lg py-2 px-4 text-white focus:ring-2 focus:ring-red-600 outline-none"
               placeholder="Vorband hinzufügen"
             />
@@ -280,6 +286,12 @@ export const ConcertForm = ({
               type="text"
               value={newGenre}
               onChange={(e) => setNewGenre(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  addGenre()
+                }
+              }}
               className="flex-1 bg-gray-800 border border-gray-700 rounded-lg py-2 px-4 text-white focus:ring-2 focus:ring-red-600 outline-none"
               placeholder="Genre hinzufügen"
             />
