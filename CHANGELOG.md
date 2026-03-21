@@ -1,3 +1,16 @@
+## [1.1.3](https://github.com/Raemy92/ConcertHub/compare/v1.1.2...v1.1.3) (2026-03-21)
+
+
+### Bug Fixes
+
+* **app:** qol improvements for mobile devices ([e3e3983](https://github.com/Raemy92/ConcertHub/commit/e3e39839f2605f2c992baed204aeaa5d0a444dd4))
+* **concert-detail:** add horizontal scroll to tabs ([e832389](https://github.com/Raemy92/ConcertHub/commit/e8323892eee1e82f867767eefd65aa40bf16adda))
+* **concert:** add archive concert confirm modal ([cbf1b6e](https://github.com/Raemy92/ConcertHub/commit/cbf1b6e75031f78deef5b760c76606c6318492d2))
+* **concert:** add Enter key to tag inputs ([bd51c63](https://github.com/Raemy92/ConcertHub/commit/bd51c6341084d9a10cfa98fa29f639971f3d40a8))
+* **concert:** change car seats input type ([767e085](https://github.com/Raemy92/ConcertHub/commit/767e085d9503ae63dcf407dc2e4126d7b5b00d86))
+* **concert:** confirm leaving a concert ([bb994e0](https://github.com/Raemy92/ConcertHub/commit/bb994e000e1bc88dcc3d50d5891213297fded9dd))
+* **concert:** make attending more userfriendly ([1f95777](https://github.com/Raemy92/ConcertHub/commit/1f9577780b3921b09a5d87e96ce094f1c4c9f8c8))
+
 ## [1.1.2](https://github.com/Raemy92/ConcertHub/compare/v1.1.1...v1.1.2) (2026-02-20)
 
 
