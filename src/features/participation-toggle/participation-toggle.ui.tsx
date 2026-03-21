@@ -1,9 +1,11 @@
-import { Car, UserCheck, UserMinus, X } from 'lucide-react'
+import { UserCheck, UserMinus } from 'lucide-react'
 import { useState } from 'react'
 
 import { useAuth } from '@/app/providers/auth.provider'
 import { Participation } from '@/entities'
 import { concertService } from '@/entities/concert/api/concert.service'
+
+import { JoinConcertModal } from './join-concert-modal.ui'
 
 interface ParticipationToggleProps {
   concertId: string
@@ -16,10 +18,9 @@ export const ParticipationToggle = ({
 }: ParticipationToggleProps) => {
   const { user } = useAuth()
   const [loading, setLoading] = useState(false)
-  const [showDriverOptions, setShowDriverOptions] = useState(false)
-  const [seats, setSeats] = useState(3)
+  const [showModal, setShowModal] = useState(false)
 
-  const handleJoin = async (isDriver: boolean) => {
+  const handleJoin = async (isDriver: boolean, seats: number) => {
     if (!user) return
     setLoading(true)
     try {
@@ -35,7 +36,7 @@ export const ParticipationToggle = ({
       }
 
       await concertService.joinConcert(participationData)
-      setShowDriverOptions(false)
+      setShowModal(false)
     } catch (error) {
       console.error('Error joining concert:', error)
     } finally {
@@ -68,57 +69,23 @@ export const ParticipationToggle = ({
     )
   }
 
-  if (showDriverOptions) {
-    return (
-      <div className="flex flex-col gap-3 p-4 bg-gray-900 rounded-xl border border-gray-800 flex-1">
-        <div className="flex items-center justify-between gap-4">
-          <label className="text-sm font-medium text-gray-400">Plätze:</label>
-          <input
-            type="number"
-            min="1"
-            max="9"
-            value={seats}
-            onChange={(e) => setSeats(parseInt(e.target.value))}
-            className="w-12 bg-gray-800 border border-gray-700 rounded px-2 py-1 text-white text-sm"
-          />
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => handleJoin(true)}
-            disabled={loading}
-            className="flex-1 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg font-bold transition-colors text-xs"
-          >
-            OK
-          </button>
-          <button
-            onClick={() => setShowDriverOptions(false)}
-            className="px-3 py-1.5 text-gray-400 hover:text-white text-xs"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div className="flex gap-2 flex-1">
+    <>
       <button
-        onClick={() => handleJoin(false)}
+        onClick={() => setShowModal(true)}
         disabled={loading}
         className="flex-1 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-bold transition-colors text-sm"
       >
         <UserCheck className="w-5 h-5" />
         Dabei
       </button>
-      <button
-        onClick={() => setShowDriverOptions(true)}
-        disabled={loading}
-        className="flex items-center justify-center p-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg font-bold transition-colors border border-gray-700"
-        title="Ich fahre mit dem Auto"
-      >
-        <Car className="w-5 h-5" />
-      </button>
-    </div>
+
+      <JoinConcertModal
+        isOpen={showModal}
+        loading={loading}
+        onClose={() => setShowModal(false)}
+        onConfirm={handleJoin}
+      />
+    </>
   )
 }
