@@ -69,7 +69,7 @@ export const Home = () => {
             className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-bold transition-colors"
           >
             <Plus className="w-5 h-5" />
-            Konzert erstellen
+            <span className="hidden sm:inline">Konzert erstellen</span>
           </button>
         </div>
         <ConcertList onEdit={handleEdit} refreshTrigger={refreshTrigger} />

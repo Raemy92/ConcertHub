@@ -33,7 +33,7 @@ const TabButton = ({
   return (
     <button
       onClick={() => onClick(tab)}
-      className={`flex items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-colors ${
+      className={`flex shrink-0 items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-colors ${
         isActive
           ? 'border-red-600 text-red-500'
           : 'border-transparent text-gray-500 hover:text-gray-300'
@@ -57,7 +57,7 @@ export const ConcertDetails = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex border-b border-gray-800">
+      <div className="flex overflow-x-auto border-b border-gray-800 scrollbar-none">
         <TabButton
           tab="info"
           activeTab={activeTab}
