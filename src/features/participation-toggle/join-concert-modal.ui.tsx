@@ -1,4 +1,4 @@
-import { Car } from 'lucide-react'
+import { Car, Minus, Plus } from 'lucide-react'
 import { useState } from 'react'
 
 import { Modal } from '@/shared/ui'
@@ -65,14 +65,27 @@ export const JoinConcertModal = ({
             <label className="text-sm font-medium text-gray-400">
               Verfügbare Plätze
             </label>
-            <input
-              type="number"
-              min="1"
-              max="9"
-              value={seats}
-              onChange={(e) => setSeats(parseInt(e.target.value))}
-              className="w-16 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm text-center focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
-            />
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setSeats((s) => Math.max(1, s - 1))}
+                className="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white transition-colors disabled:opacity-40"
+                disabled={seats <= 1}
+              >
+                <Minus className="w-4 h-4" />
+              </button>
+              <span className="w-6 text-center text-white font-bold tabular-nums">
+                {seats}
+              </span>
+              <button
+                type="button"
+                onClick={() => setSeats((s) => Math.min(9, s + 1))}
+                className="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white transition-colors disabled:opacity-40"
+                disabled={seats >= 9}
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         )}
 
