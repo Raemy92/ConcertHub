@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/Raemy92/ConcertHub/compare/v1.1.3...v1.2.0) (2026-03-22)
+
+
+### Features
+
+* **concert:** add ics calendar file download ([811533e](https://github.com/Raemy92/ConcertHub/commit/811533e018f6815d2465387e400575cfbfb8aabe)), closes [#5](https://github.com/Raemy92/ConcertHub/issues/5)
+
 ## [1.1.3](https://github.com/Raemy92/ConcertHub/compare/v1.1.2...v1.1.3) (2026-03-21)
 
 
