@@ -1,5 +1,6 @@
 import {
   Calendar,
+  CalendarPlus,
   ChevronRight,
   Clock,
   DoorOpen,
@@ -7,12 +8,13 @@ import {
   MapPin,
   Users
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { MouseEvent, useEffect, useState } from 'react'
 
 import { useAuth } from '@/app/providers/auth.provider'
 import { Concert, Participation } from '@/entities'
 import { concertService } from '@/entities/concert'
 import { ParticipationToggle } from '@/features/participation-toggle'
+import { downloadConcertIcs } from '@/shared/lib/ics'
 import { Modal } from '@/shared/ui'
 import { ConcertDetails } from '@/widgets/concert-details'
 
@@ -39,9 +41,14 @@ export const ConcertCard = ({ concert, onEdit }: ConcertCardProps) => {
   const userParticipation = participations.find((p) => p.userId === user?.uid)
   const isOwner = user?.uid === concert.createdBy
 
-  const handleEditClick = (e: React.MouseEvent) => {
+  const handleEditClick = (e: MouseEvent) => {
     e.stopPropagation()
     onEdit(concert)
+  }
+
+  const handleCalendarDownload = (e: MouseEvent) => {
+    e.stopPropagation()
+    downloadConcertIcs(concert)
   }
 
   const handleDetailsClick = () => {
@@ -76,6 +83,13 @@ export const ConcertCard = ({ concert, onEdit }: ConcertCardProps) => {
             </div>
           </div>
           <div className="flex gap-2">
+            <button
+              onClick={handleCalendarDownload}
+              className="p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white transition-colors"
+              title="Zum Kalender hinzufügen"
+            >
+              <CalendarPlus className="w-4 h-4" />
+            </button>
             {isOwner && (
               <button
                 onClick={handleEditClick}
