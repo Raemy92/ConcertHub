@@ -141,5 +141,23 @@ export const participationService = {
   ): Promise<void> {
     const participationRef = getParticipationRef(concertId, userId)
     await updateDoc(participationRef, { hasTicket })
+  },
+
+  subscribeConcertIdsByUser(
+    userId: string,
+    callback: (concertIds: Set<string>) => void
+  ): () => void {
+    const q = query(
+      collection(db, PARTICIPATIONS_COLLECTION),
+      where('userId', '==', userId)
+    )
+    return onSnapshot(q, (snapshot) => {
+      const ids = new Set(
+        snapshot.docs
+          .map((d) => d.data().concertId as string | undefined)
+          .filter(Boolean) as string[]
+      )
+      callback(ids)
+    })
   }
 }
