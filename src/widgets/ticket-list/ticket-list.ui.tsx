@@ -1,8 +1,8 @@
 import { Check, Ticket, X } from 'lucide-react'
 
 import { useAuth } from '@/app/providers/auth.provider'
-import { Concert, Participation } from '@/entities'
-import { concertService } from '@/entities/concert'
+import { Concert } from '@/entities/concert'
+import { Participation, participationService } from '@/entities/participation'
 
 interface TicketListProps {
   concert: Concert
@@ -19,7 +19,7 @@ export const TicketList = ({ concert, participations }: TicketListProps) => {
     if (!canToggle || !concert.id) return
 
     const newStatus = !participation.hasTicket
-    await concertService.updateTicketStatus(
+    await participationService.updateTicketStatus(
       concert.id,
       participation.userId,
       newStatus

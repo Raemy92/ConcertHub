@@ -1,8 +1,7 @@
 import { Music } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { Concert } from '@/entities'
-import { concertService } from '@/entities/concert'
+import { Concert, concertService } from '@/entities/concert'
 import { ConcertCard } from '@/widgets/concert-card'
 
 interface ConcertListProps {

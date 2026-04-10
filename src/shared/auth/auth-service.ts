@@ -8,8 +8,13 @@ import {
 } from 'firebase/auth'
 import { doc, setDoc } from 'firebase/firestore'
 
-import { AuthCredentials } from '@/entities'
 import { auth, db, googleProvider } from '@/shared/api/firebase/config'
+
+interface AuthCredentials {
+  email: string
+  password: string
+  displayName?: string
+}
 
 const saveUser = async (user: FirebaseUser, displayName?: string) => {
   const userRef = doc(db, 'users', user.uid)
