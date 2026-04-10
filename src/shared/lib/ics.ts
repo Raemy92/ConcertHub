@@ -1,4 +1,4 @@
-import { Concert } from '@/entities'
+import { Concert } from '@/entities/concert'
 
 function formatIcsDate(dateStr: string, timeStr: string): string {
   const date = new Date(dateStr)

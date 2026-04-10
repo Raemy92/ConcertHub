@@ -1,18 +1,53 @@
 import { LogOut, Plus } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 
 import { useAuth } from '@/app/providers/auth.provider'
-import { Concert } from '@/entities'
+import { Concert, concertService } from '@/entities/concert'
+import { Participation, participationService } from '@/entities/participation'
 import { ConcertForm } from '@/features/concert-form'
 import { authService } from '@/shared/auth/auth-service'
 import { Modal } from '@/shared/ui'
+import { ConcertDetails } from '@/widgets/concert-details'
 import { ConcertList } from '@/widgets/concert-list'
 
 export const Home = () => {
   const { user } = useAuth()
+  const { id: concertId } = useParams<{ id?: string }>()
+  const navigate = useNavigate()
+
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingConcert, setEditingConcert] = useState<Concert | undefined>()
   const [refreshTrigger, setRefreshTrigger] = useState(0)
+
+  const [detailConcert, setDetailConcert] = useState<Concert | null>(null)
+  const [detailParticipations, setDetailParticipations] = useState<
+    Participation[]
+  >([])
+  const [detailLoading, setDetailLoading] = useState(false)
+
+  useEffect(() => {
+    if (!concertId) {
+      setDetailConcert(null)
+      setDetailParticipations([])
+      return
+    }
+
+    setDetailLoading(true)
+    concertService
+      .getById(concertId)
+      .then((data) => setDetailConcert(data))
+      .finally(() => setDetailLoading(false))
+
+    return participationService.subscribeByConcert(
+      concertId,
+      setDetailParticipations
+    )
+  }, [concertId])
+
+  const handleCloseDetail = () => {
+    navigate('/', { replace: true })
+  }
 
   const handleCreateNew = () => {
     setEditingConcert(undefined)
@@ -87,6 +122,19 @@ export const Home = () => {
           onSuccess={handleSuccess}
           onCancel={() => setIsFormOpen(false)}
         />
+      </Modal>
+
+      <Modal
+        isOpen={!!concertId && !detailLoading && !!detailConcert}
+        onClose={handleCloseDetail}
+        title={detailConcert?.band || ''}
+      >
+        {detailConcert && (
+          <ConcertDetails
+            concert={detailConcert}
+            participations={detailParticipations}
+          />
+        )}
       </Modal>
     </div>
   )

@@ -12,8 +12,7 @@ import {
 import { FormEvent, useState } from 'react'
 
 import { useAuth } from '@/app/providers/auth.provider'
-import { Concert } from '@/entities'
-import { concertService } from '@/entities/concert'
+import { Concert, concertService } from '@/entities/concert'
 
 import { ArchiveConfirmModal } from './archive-confirm-modal.ui'
 
