@@ -1,3 +1,16 @@
+# [1.3.0](https://github.com/Raemy92/ConcertHub/compare/v1.2.0...v1.3.0) (2026-04-10)
+
+
+### Bug Fixes
+
+* **pwa:** various pwa improvements ([b7f0a14](https://github.com/Raemy92/ConcertHub/commit/b7f0a14be229d398620264af083727cd5570536c)), closes [#030712](https://github.com/Raemy92/ConcertHub/issues/030712)
+
+
+### Features
+
+* **concert-list:** add filters ([0adb099](https://github.com/Raemy92/ConcertHub/commit/0adb0996f6c1a8a92c688cebe64dca599ca68bc5))
+* **concert:** unique url for concert-detail ([a9ba7e8](https://github.com/Raemy92/ConcertHub/commit/a9ba7e88c2fc8903dddbf5b204aff98032791df1))
+
 # [1.2.0](https://github.com/Raemy92/ConcertHub/compare/v1.1.3...v1.2.0) (2026-03-22)
 
 
