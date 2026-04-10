@@ -1,7 +1,6 @@
 import { Car, UserPlus, X } from 'lucide-react'
 
-import { Participation } from '@/entities'
-import { concertService } from '@/entities/concert/api/concert.service'
+import { Participation, participationService } from '@/entities/participation'
 
 interface CarManagementProps {
   concertId: string
@@ -24,11 +23,15 @@ export const CarManagement = ({
 
   const handleAddPassenger = async (passengerId: string) => {
     if (freeSeats <= 0) return
-    await concertService.assignPassenger(concertId, driver.userId, passengerId)
+    await participationService.assignPassenger(
+      concertId,
+      driver.userId,
+      passengerId
+    )
   }
 
   const handleRemovePassenger = async (passengerId: string) => {
-    await concertService.removePassenger(concertId, passengerId)
+    await participationService.removePassenger(concertId, passengerId)
   }
 
   return (

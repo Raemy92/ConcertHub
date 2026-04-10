@@ -18,6 +18,8 @@ export default defineConfig(({ mode }) => {
         },
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+          navigateFallback: 'index.html',
+          navigateFallbackDenylist: [/^\/api/],
           runtimeCaching: [
             {
               urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -26,7 +28,7 @@ export default defineConfig(({ mode }) => {
                 cacheName: 'google-fonts-cache',
                 expiration: {
                   maxEntries: 10,
-                  maxAgeSeconds: 60 * 60 * 24 * 365 // <== 365 days
+                  maxAgeSeconds: 60 * 60 * 24 * 365
                 },
                 cacheableResponse: {
                   statuses: [0, 200]
@@ -40,7 +42,21 @@ export default defineConfig(({ mode }) => {
                 cacheName: 'gstatic-fonts-cache',
                 expiration: {
                   maxEntries: 10,
-                  maxAgeSeconds: 60 * 60 * 24 * 365 // <== 365 days
+                  maxAgeSeconds: 60 * 60 * 24 * 365
+                },
+                cacheableResponse: {
+                  statuses: [0, 200]
+                }
+              }
+            },
+            {
+              urlPattern: /^https:\/\/www\.gstatic\.com\/firebasejs\/.*/i,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'firebase-sdk-cache',
+                expiration: {
+                  maxEntries: 30,
+                  maxAgeSeconds: 60 * 60 * 24 * 30
                 },
                 cacheableResponse: {
                   statuses: [0, 200]
@@ -54,9 +70,10 @@ export default defineConfig(({ mode }) => {
           short_name: 'ConcertHub',
           description: 'Your ultimate concert scheduling app',
           start_url: '/',
+          scope: '/',
           display: 'standalone',
-          background_color: '#111827',
-          theme_color: '#dc2626',
+          background_color: '#030712',
+          theme_color: '#000000',
           icons: [
             {
               src: 'icon-192.png',
@@ -67,6 +84,12 @@ export default defineConfig(({ mode }) => {
               src: 'icon-512.png',
               sizes: '512x512',
               type: 'image/png'
+            },
+            {
+              src: 'icon-512.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'maskable'
             }
           ]
         }

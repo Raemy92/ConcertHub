@@ -1,6 +1,6 @@
 import { Car, User } from 'lucide-react'
 
-import { Participation } from '@/entities'
+import { Participation } from '@/entities/participation'
 
 interface ParticipantListProps {
   participations: Participation[]

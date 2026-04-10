@@ -2,8 +2,8 @@ import { UserCheck, UserMinus } from 'lucide-react'
 import { useState } from 'react'
 
 import { useAuth } from '@/app/providers/auth.provider'
-import { Participation } from '@/entities'
-import { concertService } from '@/entities/concert/api/concert.service'
+import { Participation } from '@/entities/participation'
+import { participationService } from '@/entities/participation'
 
 import { JoinConcertModal } from './join-concert-modal.ui'
 import { LeaveConfirmModal } from './leave-confirm-modal.ui'
@@ -36,7 +36,7 @@ export const ParticipationToggle = ({
     }
 
     setShowJoinModal(false)
-    concertService.joinConcert(participationData).catch((error) => {
+    participationService.join(participationData).catch((error) => {
       console.error('Error joining concert:', error)
     })
   }
@@ -46,7 +46,7 @@ export const ParticipationToggle = ({
     setLoading(true)
     setShowLeaveModal(false)
     try {
-      await concertService.leaveConcert(concertId, user.uid)
+      await participationService.leave(concertId, user.uid)
     } catch (error) {
       console.error('Error leaving concert:', error)
     } finally {
