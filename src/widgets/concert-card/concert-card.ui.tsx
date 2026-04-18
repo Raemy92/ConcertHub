@@ -1,14 +1,16 @@
 import {
   Calendar,
   CalendarPlus,
+  Check,
   ChevronRight,
   Clock,
   DoorOpen,
   Edit2,
   MapPin,
+  Share2,
   Users
 } from 'lucide-react'
-import { MouseEvent, useEffect, useState } from 'react'
+import { MouseEvent, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { useAuth } from '@/app/providers/auth.provider'
@@ -16,6 +18,7 @@ import { Concert } from '@/entities/concert'
 import { Participation, participationService } from '@/entities/participation'
 import { ParticipationToggle } from '@/features/participation-toggle'
 import { downloadConcertIcs } from '@/shared/lib/ics'
+import { shareOrCopy } from '@/shared/lib/share'
 
 interface ConcertCardProps {
   concert: Concert
@@ -26,6 +29,8 @@ export const ConcertCard = ({ concert, onEdit }: ConcertCardProps) => {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [participations, setParticipations] = useState<Participation[]>([])
+  const [justCopied, setJustCopied] = useState(false)
+  const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (concert.id) {
@@ -35,6 +40,14 @@ export const ConcertCard = ({ concert, onEdit }: ConcertCardProps) => {
       )
     }
   }, [concert.id])
+
+  useEffect(() => {
+    return () => {
+      if (copiedTimeoutRef.current !== null) {
+        clearTimeout(copiedTimeoutRef.current)
+      }
+    }
+  }, [])
 
   const userParticipation = participations.find((p) => p.userId === user?.uid)
   const isOwner = user?.uid === concert.createdBy
@@ -47,6 +60,25 @@ export const ConcertCard = ({ concert, onEdit }: ConcertCardProps) => {
   const handleCalendarDownload = (e: MouseEvent) => {
     e.stopPropagation()
     downloadConcertIcs(concert)
+  }
+
+  const handleShareClick = async (e: MouseEvent) => {
+    e.stopPropagation()
+    if (!concert.id) return
+    const result = await shareOrCopy({
+      title: concert.band,
+      url: `${window.location.origin}/concert/${concert.id}`
+    })
+    if (result === 'copied') {
+      setJustCopied(true)
+      if (copiedTimeoutRef.current !== null) {
+        clearTimeout(copiedTimeoutRef.current)
+      }
+      copiedTimeoutRef.current = setTimeout(() => {
+        setJustCopied(false)
+        copiedTimeoutRef.current = null
+      }, 2000)
+    }
   }
 
   const handleNavigateToDetail = () => {
@@ -80,6 +112,17 @@ export const ConcertCard = ({ concert, onEdit }: ConcertCardProps) => {
           </div>
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={handleShareClick}
+            className="p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white transition-colors"
+            title={justCopied ? 'Link kopiert' : 'Link teilen'}
+          >
+            {justCopied ? (
+              <Check className="w-4 h-4" />
+            ) : (
+              <Share2 className="w-4 h-4" />
+            )}
+          </button>
           <button
             onClick={handleCalendarDownload}
             className="p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white transition-colors"
