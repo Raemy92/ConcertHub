@@ -59,7 +59,7 @@ Each entity slice follows `model/types.ts` + `api/<name>.service.ts`:
 ### Key domain concepts
 
 - **Concert**: A gig with band info, location, date/time, price, and an `isArchived` flag.
-- **Participation**: Links a user to a concert, tracks `hasTicket`, `isDriver`, `availableSeats`, and `driverId` (for carpooling passengers).
+- **Participation**: Links a user to a concert, tracks `hasTicket`, `isDriver`, `availableSeats`, and `driverId` (for carpooling passengers). Document ID convention: `${concertId}_${userId}`.
 
 ### Routing
 
@@ -80,7 +80,11 @@ Tailwind CSS **v4** via `@tailwindcss/vite` plugin — configuration is CSS-base
 
 ### Environment & Firebase
 
-Firebase config is loaded from env vars in `./environments/` (not `.env` at root). Copy `environments/.env.example` to `environments/.env.local`. See `src/shared/api/firebase/config.ts`.
+Vite is configured with `envDir: './environments'` (see `vite.config.ts`), so `VITE_FIREBASE_*` vars are read from there — not from `.env` at the repo root. Copy `environments/.env.example` to `environments/.env.local`. Firebase is initialized in `src/shared/api/firebase/config.ts`.
+
+### PWA
+
+The app ships as a PWA via `vite-plugin-pwa` (configured in `vite.config.ts`) — service worker and manifest are generated at build time.
 
 ### Deploy
 
@@ -89,13 +93,14 @@ Firebase Hosting serves the `dist/` output. Build with `npm run build`, then `fi
 ### Testing
 
 - Framework: Vitest + `@testing-library/react`, JSDOM environment
-- Setup files in `.test/`
+- `vitest.config.mts` references `.test/vitest.globals.ts` (globalSetup) and `.test/vitest.setup.tsx` (setupFiles), plus a `@/test-utils` alias pointing at `.test/`. **Heads-up**: this `.test/` directory is currently missing from the repo — `npm test` will fail at startup until it's restored or the config is updated.
 - `src/entities/**` and `src/app/**` are excluded from coverage
 - No tests for `src/app/` or entity modules — focus on features/widgets/shared
 
 ### Tooling notes
 
 - ESLint uses **flat config** (`eslint.config.mjs`) with `simple-import-sort` and `unused-imports` plugins — imports must be sorted and unused imports are errors.
+- ESLint also enforces `@typescript-eslint/no-unsafe-member-access` as **error** (don't access properties on `any`-typed values — narrow or type them first) and `@typescript-eslint/no-explicit-any` as **warn**.
 - Pre-commit hooks (Husky + lint-staged) run ESLint fix + Prettier on staged files.
 - Semantic-release on `main` generates changelog and GitHub releases automatically.
 - Conventional commits are enforced; use `npm run commit` for the interactive prompt.
