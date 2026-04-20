@@ -1,82 +1,43 @@
 import { Plus } from 'lucide-react'
-import { useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 
 import { MainLayoutContext } from '@/app/layouts/main-layout'
-import { Concert } from '@/entities/concert'
-import { ConcertForm } from '@/features/concert-form'
-import { Modal } from '@/shared/ui'
 import { ConcertList } from '@/widgets/concert-list'
 
 export const Home = () => {
-  const { query, setQuery } = useOutletContext<MainLayoutContext>()
-
-  const [isFormOpen, setIsFormOpen] = useState(false)
-  const [editingConcert, setEditingConcert] = useState<Concert | undefined>()
-  const [refreshTrigger, setRefreshTrigger] = useState(0)
-
-  const handleCreateNew = () => {
-    setEditingConcert(undefined)
-    setIsFormOpen(true)
-  }
-
-  const handleEdit = (concert: Concert) => {
-    setEditingConcert(concert)
-    setIsFormOpen(true)
-  }
-
-  const handleSuccess = () => {
-    setIsFormOpen(false)
-    setEditingConcert(undefined)
-    setRefreshTrigger((prev) => prev + 1)
-  }
+  const { query, setQuery, openCreate, openEdit, refreshTrigger } =
+    useOutletContext<MainLayoutContext>()
 
   return (
     <>
       <ConcertList
-        onEdit={handleEdit}
+        onEdit={openEdit}
         refreshTrigger={refreshTrigger}
         query={query}
         onResetQuery={() => setQuery('')}
-        onCreate={handleCreateNew}
+        onCreate={openCreate}
       />
 
-      {!isFormOpen && (
-        <button
-          onClick={handleCreateNew}
-          aria-label="Konzert erstellen"
-          className="fixed flex items-center justify-center cursor-pointer transition-transform hover:scale-105"
-          style={{
-            bottom: 28,
-            right: 'max(16px, calc((100vw - 1024px) / 2 + 16px))',
-            zIndex: 30,
-            width: 56,
-            height: 56,
-            borderRadius: 18,
-            background: 'linear-gradient(135deg, #8affc0, #5ee09a)',
-            color: '#0a1220',
-            border: 'none',
-            boxShadow:
-              '0 10px 28px rgba(124,255,178,0.35), 0 2px 6px rgba(0,0,0,0.3)'
-          }}
-        >
-          <Plus size={26} strokeWidth={2.5} />
-        </button>
-      )}
-
-      <Modal
-        isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
-        title={
-          editingConcert ? 'Konzert bearbeiten' : 'Neues Konzert erstellen'
-        }
+      <button
+        onClick={openCreate}
+        aria-label="Konzert erstellen"
+        className="fixed md:hidden flex items-center justify-center cursor-pointer transition-transform hover:scale-105"
+        style={{
+          bottom: 28,
+          right: 'max(16px, calc((100vw - 1024px) / 2 + 16px))',
+          zIndex: 30,
+          width: 56,
+          height: 56,
+          borderRadius: 18,
+          background: 'linear-gradient(135deg, #8affc0, #5ee09a)',
+          color: '#0a1220',
+          border: 'none',
+          boxShadow:
+            '0 10px 28px rgba(124,255,178,0.35), 0 2px 6px rgba(0,0,0,0.3)'
+        }}
       >
-        <ConcertForm
-          concert={editingConcert}
-          onSuccess={handleSuccess}
-          onCancel={() => setIsFormOpen(false)}
-        />
-      </Modal>
+        <Plus size={26} strokeWidth={2.5} />
+      </button>
     </>
   )
 }
