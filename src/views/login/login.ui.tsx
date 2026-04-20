@@ -8,11 +8,9 @@ export const Login = () => {
   const from = (location.state as { from?: string })?.from || '/'
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-950 p-4">
-      <LoginForm
-        onSuccess={() => navigate(from, { replace: true })}
-        onSwitchToRegister={() => navigate('/register', { state: { from } })}
-      />
-    </div>
+    <LoginForm
+      onSuccess={() => navigate(from, { replace: true })}
+      onSwitchToRegister={() => navigate('/register', { state: { from } })}
+    />
   )
 }
