@@ -8,12 +8,14 @@ import { SkeletonCard } from '@/shared/ui'
 import { ConcertCard } from '@/widgets/concert-card'
 
 type Filter = 'all' | 'participating' | 'created'
+export type ConcertListVariant = 'upcoming' | 'past'
 
 interface ConcertListProps {
   onEdit: (concert: Concert) => void
   refreshTrigger: number
   query: string
   onResetQuery: () => void
+  variant?: ConcertListVariant
 }
 
 const FILTERS: { key: Filter; label: string }[] = [
@@ -23,7 +25,7 @@ const FILTERS: { key: Filter; label: string }[] = [
 ]
 
 interface EmptyStateProps {
-  variant: 'none' | 'no-results' | 'no-participation' | 'no-created'
+  variant: 'none' | 'no-results' | 'no-participation' | 'no-created' | 'no-past'
   onCreate?: () => void
   onReset?: () => void
 }
@@ -59,6 +61,12 @@ const EmptyState = ({ variant, onCreate, onReset }: EmptyStateProps) => {
       action: onCreate
         ? { label: 'Konzert erstellen', onClick: onCreate }
         : undefined
+    },
+    'no-past': {
+      icon: Music,
+      title: 'Keine vergangenen Konzerte',
+      body: 'Sobald Konzerte vorbei sind, erscheinen sie hier.',
+      action: undefined
     }
   }
   const e = map[variant]
@@ -119,7 +127,8 @@ export const ConcertList = ({
   refreshTrigger,
   query,
   onResetQuery,
-  onCreate
+  onCreate,
+  variant = 'upcoming'
 }: ConcertListExtendedProps) => {
   const { user } = useAuth()
   const [concerts, setConcerts] = useState<Concert[]>([])
@@ -137,7 +146,10 @@ export const ConcertList = ({
     const fetchConcerts = async () => {
       setLoading(true)
       try {
-        const data = await concertService.getAllUpcoming()
+        const data =
+          variant === 'past'
+            ? await concertService.getAllPast()
+            : await concertService.getAllUpcoming()
         setConcerts(data)
       } catch (error) {
         console.error('Fehler beim Laden der Konzerte:', error)
@@ -147,7 +159,7 @@ export const ConcertList = ({
     }
 
     fetchConcerts()
-  }, [refreshTrigger])
+  }, [refreshTrigger, variant])
 
   useEffect(() => {
     if (!user) return
@@ -262,7 +274,10 @@ export const ConcertList = ({
       </div>
 
       {concerts.length === 0 ? (
-        <EmptyState variant="none" onCreate={onCreate} />
+        <EmptyState
+          variant={variant === 'past' ? 'no-past' : 'none'}
+          onCreate={onCreate}
+        />
       ) : filteredConcerts.length === 0 ? (
         <EmptyState
           variant={

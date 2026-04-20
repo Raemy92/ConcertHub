@@ -1,4 +1,3 @@
-import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 
@@ -8,17 +7,12 @@ import { ConcertForm } from '@/features/concert-form'
 import { Modal } from '@/shared/ui'
 import { ConcertList } from '@/widgets/concert-list'
 
-export const Home = () => {
+export const Archive = () => {
   const { query, setQuery } = useOutletContext<MainLayoutContext>()
 
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingConcert, setEditingConcert] = useState<Concert | undefined>()
   const [refreshTrigger, setRefreshTrigger] = useState(0)
-
-  const handleCreateNew = () => {
-    setEditingConcert(undefined)
-    setIsFormOpen(true)
-  }
 
   const handleEdit = (concert: Concert) => {
     setEditingConcert(concert)
@@ -34,42 +28,17 @@ export const Home = () => {
   return (
     <>
       <ConcertList
+        variant="past"
         onEdit={handleEdit}
         refreshTrigger={refreshTrigger}
         query={query}
         onResetQuery={() => setQuery('')}
-        onCreate={handleCreateNew}
       />
-
-      {!isFormOpen && (
-        <button
-          onClick={handleCreateNew}
-          aria-label="Konzert erstellen"
-          className="fixed flex items-center justify-center cursor-pointer transition-transform hover:scale-105"
-          style={{
-            bottom: 28,
-            right: 'max(16px, calc((100vw - 1024px) / 2 + 16px))',
-            zIndex: 30,
-            width: 56,
-            height: 56,
-            borderRadius: 18,
-            background: 'linear-gradient(135deg, #8affc0, #5ee09a)',
-            color: '#0a1220',
-            border: 'none',
-            boxShadow:
-              '0 10px 28px rgba(124,255,178,0.35), 0 2px 6px rgba(0,0,0,0.3)'
-          }}
-        >
-          <Plus size={26} strokeWidth={2.5} />
-        </button>
-      )}
 
       <Modal
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
-        title={
-          editingConcert ? 'Konzert bearbeiten' : 'Neues Konzert erstellen'
-        }
+        title="Konzert bearbeiten"
       >
         <ConcertForm
           concert={editingConcert}

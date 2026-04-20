@@ -85,7 +85,7 @@ export const ConcertCard = ({
   }
 
   const handleNavigateToDetail = () => {
-    navigate(`/concert/${concert.id}`)
+    navigate(`concert/${concert.id}`)
   }
 
   const handleCardKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {

@@ -10,10 +10,12 @@ import {
 } from 'react-router-dom'
 
 import { OfflineStatus } from '@/shared/ui'
+import { Archive } from '@/views/archive'
 import { Home } from '@/views/home'
 import { Login } from '@/views/login'
 import { Register } from '@/views/register'
 
+import { MainLayout } from './layouts/main-layout'
 import { AuthProvider, useAuth } from './providers/auth.provider'
 
 const ProtectedRoute = ({ children }: { children: ReactNode }) => {
@@ -36,14 +38,18 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route
-            path="/"
             element={
               <ProtectedRoute>
-                <Home />
+                <MainLayout />
               </ProtectedRoute>
             }
           >
-            <Route path="concert/:id" />
+            <Route path="/" element={<Home />}>
+              <Route path="concert/:id" />
+            </Route>
+            <Route path="/archive" element={<Archive />}>
+              <Route path="concert/:id" />
+            </Route>
           </Route>
         </Routes>
       </BrowserRouter>
