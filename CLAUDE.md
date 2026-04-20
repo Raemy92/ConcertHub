@@ -93,7 +93,7 @@ Firebase Hosting serves the `dist/` output. Build with `npm run build`, then `fi
 ### Testing
 
 - Framework: Vitest + `@testing-library/react`, JSDOM environment
-- `vitest.config.mts` references `.test/vitest.globals.ts` (globalSetup) and `.test/vitest.setup.tsx` (setupFiles), plus a `@/test-utils` alias pointing at `.test/`. **Heads-up**: this `.test/` directory is currently missing from the repo — `npm test` will fail at startup until it's restored or the config is updated.
+- `vitest.config.mts` references `.test/vitest.globals.ts` (globalSetup) and `.test/vitest.setup.tsx` (setupFiles — runs `cleanup()` after each test), plus a `@/test-utils` alias pointing at `.test/`.
 - `src/entities/**` and `src/app/**` are excluded from coverage
 - No tests for `src/app/` or entity modules — focus on features/widgets/shared
 
@@ -105,3 +105,7 @@ Firebase Hosting serves the `dist/` output. Build with `npm run build`, then `fi
 - Semantic-release on `main` generates changelog and GitHub releases automatically.
 - Conventional commits are enforced; use `npm run commit` for the interactive prompt.
 - Unused variables must be prefixed with `_` (e.g., `_unused`) — the `unused-imports/no-unused-vars` rule enforces this via `varsIgnorePattern: '^_'`.
+
+### Spec-driven changes (OpenSpec)
+
+The repo uses OpenSpec (`openspec/` with `changes/` and `specs/` subfolders, driven by `openspec/config.yaml`). For non-trivial work, prefer the OpenSpec skills (`/openspec-propose`, `/openspec-apply-change`, `/openspec-archive-change`) over ad-hoc edits so proposals, specs, and tasks stay in sync.
