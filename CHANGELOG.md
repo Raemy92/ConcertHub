@@ -1,3 +1,20 @@
+# [1.4.0](https://github.com/Raemy92/ConcertHub/compare/v1.3.0...v1.4.0) (2026-04-26)
+
+
+### Bug Fixes
+
+* **hosting:** use SPA rewrites instead of framework backend ([6e3d290](https://github.com/Raemy92/ConcertHub/commit/6e3d2909befad4dc0d4a9fb5e50e65b7ecbc4b87))
+* **sw:** take over existing clients on update via skipWaiting and clients.claim ([5d32bac](https://github.com/Raemy92/ConcertHub/commit/5d32bac7d3b2eac98914e553aaa9afd84800e76e))
+
+
+### Features
+
+* **archive:** add archive view ([10e0181](https://github.com/Raemy92/ConcertHub/commit/10e0181317a298c11e84c9904e81be5ae21848ad))
+* **concert:** add share button ([c75296b](https://github.com/Raemy92/ConcertHub/commit/c75296bccfd0e0b90e5a5d8b8fae53041c26e588))
+* **navigation:** add navigation ([1cde87f](https://github.com/Raemy92/ConcertHub/commit/1cde87fa1908f59cfab839e3f46b4ad11a249114))
+* **notifications:** add push notifications via FCM ([8026771](https://github.com/Raemy92/ConcertHub/commit/80267718ebf4a3d5deed93cbb65a421512ea3fe8))
+* **ui:** redesign the whole app ([7a16e66](https://github.com/Raemy92/ConcertHub/commit/7a16e660fb0793109f1eec626dc5c530227090f4))
+
 # [1.3.0](https://github.com/Raemy92/ConcertHub/compare/v1.2.0...v1.3.0) (2026-04-10)
 
 
