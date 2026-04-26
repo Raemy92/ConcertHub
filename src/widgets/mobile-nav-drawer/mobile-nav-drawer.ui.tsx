@@ -1,4 +1,4 @@
-import { CalendarClock, History, LogOut } from 'lucide-react'
+import { CalendarClock, History, LogOut, Settings } from 'lucide-react'
 import { useEffect } from 'react'
 import { NavLink } from 'react-router-dom'
 
@@ -108,6 +108,10 @@ export const MobileNavDrawer = ({ open, onClose }: MobileNavDrawerProps) => {
         <NavLink to="/archive" style={navItemStyle} onClick={onClose}>
           <History size={18} />
           Archiv
+        </NavLink>
+        <NavLink to="/settings" style={navItemStyle} onClick={onClose}>
+          <Settings size={18} />
+          Einstellungen
         </NavLink>
 
         <div style={{ flex: 1 }} />

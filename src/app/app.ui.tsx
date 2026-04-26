@@ -14,6 +14,7 @@ import { Archive } from '@/views/archive'
 import { Home } from '@/views/home'
 import { Login } from '@/views/login'
 import { Register } from '@/views/register'
+import { Settings } from '@/views/settings'
 
 import { MainLayout } from './layouts/main-layout'
 import { AuthProvider, useAuth } from './providers/auth.provider'
@@ -50,6 +51,7 @@ const App = () => {
             <Route path="/archive" element={<Archive />}>
               <Route path="concert/:id" />
             </Route>
+            <Route path="/settings" element={<Settings />} />
           </Route>
         </Routes>
       </BrowserRouter>

@@ -84,7 +84,15 @@ Vite is configured with `envDir: './environments'` (see `vite.config.ts`), so `V
 
 ### PWA
 
-The app ships as a PWA via `vite-plugin-pwa` (configured in `vite.config.ts`) — service worker and manifest are generated at build time.
+The app ships as a PWA via `vite-plugin-pwa` configured in `strategies: 'injectManifest'` mode (see `vite.config.ts`). The service-worker source lives at `src/sw.ts` and is bundled at build time. The SW does two jobs: Workbox precaching + runtime caching of third-party assets, and Firebase Cloud Messaging background-message handling (`onBackgroundMessage`, `notificationclick`).
+
+### Push notifications
+
+- **Client**: `src/shared/notifications/notifications.service.ts` handles permission prompt, FCM token registration (`getToken` with the VAPID key from `VITE_FIREBASE_VAPID_KEY`), and unregister. Tokens live at `users/{uid}/fcmTokens/{tokenId}` in Firestore.
+- **UI**: `src/features/notification-settings/` + `/settings` route (via `src/views/settings/`) lets users opt in and toggle two categories: `newConcert` and `newParticipant`. Preferences persist on `users/{uid}.notificationPrefs`.
+- **Server**: Firestore triggers in `functions/` (Cloud Functions v2, `europe-west1`, Node 20) fan out push notifications. `onConcertCreate` pings opted-in users when a concert is created (excluding the creator). `onParticipationCreate` pings the concert creator and co-participants when someone joins (excluding the joiner). Invalid tokens are pruned on send.
+- **Required env var**: `VITE_FIREBASE_VAPID_KEY` — generate in Firebase Console → Project settings → Cloud Messaging → Web Push certificates.
+- **Deploy prerequisites**: Blaze plan (for Cloud Functions — FCM itself is free on Spark). Rules live in `firestore.rules`. Deploy order: `firebase deploy --only firestore:rules`, then `firebase deploy --only functions`.
 
 ### Deploy
 

@@ -3,7 +3,8 @@ import {
   History,
   LogOut,
   MoreHorizontal,
-  Plus
+  Plus,
+  Settings
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { NavLink } from 'react-router-dom'
@@ -138,6 +139,10 @@ export const AppSidebar = ({ onCreate }: AppSidebarProps) => {
       <NavLink to="/archive" style={navItemStyle}>
         <History size={16} />
         Archiv
+      </NavLink>
+      <NavLink to="/settings" style={navItemStyle}>
+        <Settings size={16} />
+        Einstellungen
       </NavLink>
 
       <div style={{ flex: 1 }} />
