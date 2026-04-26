@@ -10,6 +10,7 @@ node_modules/
 # Environment variables
 .env
 .env.local
+.env.staging
 .env.development.local
 .env.test.local
 .env.production.local
@@ -57,6 +58,12 @@ jspm_packages/
 
 # Optional eslint cache
 .eslintcache
+
+# TypeScript incremental build cache
+*.tsbuildinfo
+
+# Claude Code local overrides (personal settings, hooks, paths)
+.claude/settings.local.json
 
 # Microbundle cache
 .rpt2_cache/

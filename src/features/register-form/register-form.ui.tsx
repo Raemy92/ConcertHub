@@ -1,8 +1,8 @@
-import { Lock, Mail, User, UserPlus } from 'lucide-react'
+import { Lock, Mail, User } from 'lucide-react'
 import { FormEvent, useState } from 'react'
 
 import { authService } from '@/shared/auth/auth-service'
-import { FormInput } from '@/shared/ui'
+import { AuthShell, FormInput } from '@/shared/ui'
 
 interface RegisterFormProps {
   onSuccess?: () => void
@@ -44,15 +44,23 @@ export const RegisterForm = ({
   }
 
   return (
-    <div className="w-full max-w-md p-8 bg-gray-900 rounded-2xl shadow-xl border border-gray-800">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-white">Konto erstellen</h2>
-        <p className="text-gray-400 mt-2">
-          Werde Teil der ConcertHub Community
-        </p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
+    <AuthShell
+      title="Komm an Bord."
+      subtitle="Plane Shows mit deinen Freunden. Verpasse keine Mitfahrt."
+      footer={
+        <>
+          Bereits ein Konto?{' '}
+          <button
+            onClick={onSwitchToLogin}
+            className="font-semibold cursor-pointer bg-transparent border-none p-0"
+            style={{ color: 'var(--accent)', fontSize: 13 }}
+          >
+            Anmelden
+          </button>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <FormInput
           label="Anzeigename"
           type="text"
@@ -62,17 +70,15 @@ export const RegisterForm = ({
           required
           icon={User}
         />
-
         <FormInput
           label="E-Mail"
           type="email"
           value={email}
           onChange={setEmail}
-          placeholder="deine@email.de"
+          placeholder="du@konzerthub.ch"
           required
           icon={Mail}
         />
-
         <FormInput
           label="Passwort"
           type="password"
@@ -82,7 +88,6 @@ export const RegisterForm = ({
           required
           icon={Lock}
         />
-
         <FormInput
           label="Passwort bestätigen"
           type="password"
@@ -93,33 +98,30 @@ export const RegisterForm = ({
           icon={Lock}
         />
 
-        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+        {error && (
+          <p className="text-center" style={{ color: '#ff7788', fontSize: 13 }}>
+            {error}
+          </p>
+        )}
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+          className="font-bold cursor-pointer disabled:opacity-50"
+          style={{
+            marginTop: 8,
+            padding: 15,
+            borderRadius: 14,
+            background: 'linear-gradient(180deg, #8affc0, #5ee09a)',
+            color: '#031615',
+            border: 'none',
+            fontSize: 15,
+            boxShadow: '0 6px 20px rgba(124,255,178,0.3)'
+          }}
         >
-          {loading ? (
-            'Lädt...'
-          ) : (
-            <>
-              <UserPlus className="w-5 h-5" />
-              Registrieren
-            </>
-          )}
+          {loading ? 'Lädt…' : 'Konto erstellen'}
         </button>
       </form>
-
-      <p className="mt-8 text-center text-gray-400">
-        Bereits ein Konto oder mit deinem Google-Konto registrieren?{' '}
-        <button
-          onClick={onSwitchToLogin}
-          className="text-red-500 hover:underline font-medium"
-        >
-          Jetzt anmelden
-        </button>
-      </p>
-    </div>
+    </AuthShell>
   )
 }

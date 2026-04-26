@@ -1,113 +1,208 @@
-import { Check, Ticket, X } from 'lucide-react'
+import { Check, Clock, Link2, Ticket } from 'lucide-react'
 
 import { useAuth } from '@/app/providers/auth.provider'
 import { Concert } from '@/entities/concert'
 import { Participation, participationService } from '@/entities/participation'
+import { Avatar } from '@/shared/ui'
 
 interface TicketListProps {
   concert: Concert
   participations: Participation[]
 }
 
-export const TicketList = ({ concert, participations }: TicketListProps) => {
-  const { user } = useAuth()
+interface SectionProps {
+  title: string
+  people: Participation[]
+  tone: 'green' | 'amber'
+  canToggle: (p: Participation) => boolean
+  onToggle: (p: Participation) => void
+}
 
-  const isCreator = user?.uid === concert.createdBy
+const getName = (p: Participation) =>
+  p.displayName?.trim() || 'Unbekannter Benutzer'
 
-  const handleTicketToggle = async (participation: Participation) => {
-    const canToggle = isCreator || participation.userId === user?.uid
-    if (!canToggle || !concert.id) return
-
-    const newStatus = !participation.hasTicket
-    await participationService.updateTicketStatus(
-      concert.id,
-      participation.userId,
-      newStatus
-    )
-  }
-
-  const getName = (p: Participation) =>
-    p.displayName?.trim() || 'Unbekannter Benutzer'
-
-  const ticketCount = participations.filter((p) => p.hasTicket).length
-
+const Section = ({
+  title,
+  people,
+  tone,
+  canToggle,
+  onToggle
+}: SectionProps) => {
+  const dot = tone === 'green' ? 'var(--accent)' : '#ffb020'
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider">
-          Ticket-Status
-        </h3>
-        <span className="text-sm text-gray-400">
-          {ticketCount} / {participations.length} haben ein Ticket
-        </span>
+    <div>
+      <div
+        className="font-semibold uppercase flex items-center gap-1.5"
+        style={{
+          fontSize: 11,
+          color: 'rgba(255,255,255,0.45)',
+          letterSpacing: 0.6,
+          margin: '0 4px 8px'
+        }}
+      >
+        <span
+          style={{
+            width: 7,
+            height: 7,
+            borderRadius: 999,
+            background: dot
+          }}
+        />
+        {title} · {people.length}
       </div>
-
-      {participations.length === 0 ? (
-        <p className="text-gray-600 text-sm italic">
-          Noch keine Teilnehmer angemeldet.
-        </p>
+      {people.length === 0 ? (
+        <div
+          style={{
+            padding: 14,
+            fontSize: 12.5,
+            color: 'rgba(255,255,255,0.4)',
+            border: '0.5px dashed rgba(255,255,255,0.1)',
+            borderRadius: 12
+          }}
+        >
+          -
+        </div>
       ) : (
-        <div className="space-y-2">
-          {participations.map((participation) => {
-            const isCurrentUser = participation.userId === user?.uid
-            const canToggle = isCreator || isCurrentUser
-
+        <div className="flex flex-col gap-1.5">
+          {people.map((p) => {
+            const toggleable = canToggle(p)
+            const Icon = p.hasTicket ? Check : Clock
             return (
-              <div
-                key={participation.userId}
-                className={`flex items-center justify-between p-3 rounded-lg border ${
-                  participation.hasTicket
-                    ? 'bg-green-900/20 border-green-800/50'
-                    : 'bg-gray-900 border-gray-800'
+              <button
+                key={p.userId}
+                type="button"
+                onClick={() => toggleable && onToggle(p)}
+                disabled={!toggleable}
+                className={`flex items-center gap-2.5 text-left w-full ${
+                  toggleable ? 'cursor-pointer' : 'cursor-default'
                 }`}
+                style={{
+                  padding: '8px 12px',
+                  background: 'rgba(255,255,255,0.03)',
+                  border: '0.5px solid rgba(255,255,255,0.07)',
+                  borderRadius: 12
+                }}
               >
-                <div className="flex items-center gap-3">
-                  <Ticket
-                    className={`w-5 h-5 ${
-                      participation.hasTicket
-                        ? 'text-green-500'
-                        : 'text-gray-600'
-                    }`}
-                  />
-                  <span
-                    className={`${isCurrentUser ? 'font-bold text-white' : 'text-gray-300'}`}
-                  >
-                    {getName(participation)}
-                    {isCurrentUser && ' (Du)'}
-                  </span>
-                </div>
-
-                <button
-                  onClick={() => handleTicketToggle(participation)}
-                  disabled={!canToggle}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                    participation.hasTicket
-                      ? 'bg-green-600 text-white hover:bg-green-700'
-                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                  } ${!canToggle ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                <Avatar name={getName(p)} size={28} />
+                <span
+                  className="flex-1 font-medium truncate"
+                  style={{ fontSize: 13.5 }}
                 >
-                  {participation.hasTicket ? (
-                    <>
-                      <Check className="w-4 h-4" />
-                      Hat Ticket
-                    </>
-                  ) : (
-                    <>
-                      <X className="w-4 h-4" />
-                      Kein Ticket
-                    </>
-                  )}
-                </button>
-              </div>
+                  {getName(p)}
+                </span>
+                <Icon
+                  size={16}
+                  color={p.hasTicket ? 'var(--accent)' : '#ffb020'}
+                />
+              </button>
             )
           })}
         </div>
       )}
+    </div>
+  )
+}
+
+export const TicketList = ({ concert, participations }: TicketListProps) => {
+  const { user } = useAuth()
+  const isCreator = user?.uid === concert.createdBy
+
+  const have = participations.filter((p) => p.hasTicket)
+  const pending = participations.filter((p) => !p.hasTicket)
+
+  const canToggle = (p: Participation) =>
+    !!user && !!concert.id && (isCreator || p.userId === user.uid)
+
+  const handleToggle = (p: Participation) => {
+    if (!concert.id) return
+    void participationService.updateTicketStatus(
+      concert.id,
+      p.userId,
+      !p.hasTicket
+    )
+  }
+
+  return (
+    <div className="px-4 flex flex-col gap-4">
+      <div
+        className="flex items-center gap-3"
+        style={{
+          padding: 14,
+          borderRadius: 14,
+          background:
+            'linear-gradient(135deg, rgba(255,176,32,0.12), rgba(255,176,32,0.04))',
+          border: '0.5px solid rgba(255,176,32,0.2)'
+        }}
+      >
+        <div
+          className="font-extrabold"
+          style={{
+            fontSize: 28,
+            color: '#ffb020',
+            letterSpacing: -1,
+            fontVariantNumeric: 'tabular-nums'
+          }}
+        >
+          {have.length}
+          <span style={{ color: 'rgba(255,255,255,0.3)', fontWeight: 600 }}>
+            /{participations.length}
+          </span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-semibold" style={{ fontSize: 13 }}>
+            Tickets gesichert
+          </div>
+          <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.5)' }}>
+            CHF {concert.price.toFixed(2)} ·{' '}
+            {concert.eventUrl ? 'Link verfügbar' : 'Abendkasse'}
+          </div>
+        </div>
+        {concert.eventUrl && (
+          <a
+            href={concert.eventUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-1 cursor-pointer font-semibold"
+            style={{
+              padding: '6px 10px',
+              borderRadius: 999,
+              background: 'rgba(255,176,32,0.15)',
+              color: '#ffb020',
+              border: '0.5px solid rgba(255,176,32,0.3)',
+              fontSize: 12
+            }}
+          >
+            <Link2 size={12} />
+            kaufen
+          </a>
+        )}
+        {!concert.eventUrl && <Ticket size={18} color="rgba(255,176,32,0.6)" />}
+      </div>
+
+      <Section
+        title="Schon gesichert"
+        people={have}
+        tone="green"
+        canToggle={canToggle}
+        onToggle={handleToggle}
+      />
+      <Section
+        title="Noch offen"
+        people={pending}
+        tone="amber"
+        canToggle={canToggle}
+        onToggle={handleToggle}
+      />
 
       {isCreator && (
-        <p className="text-xs text-gray-500 mt-4">
-          Als Ersteller dieses Konzerts kannst du den Ticket-Status aller
-          Teilnehmer verwalten.
+        <p
+          style={{
+            fontSize: 11,
+            color: 'rgba(255,255,255,0.4)',
+            margin: '0 4px'
+          }}
+        >
+          Als Ersteller kannst du den Ticket-Status aller Teilnehmer umschalten.
         </p>
       )}
     </div>

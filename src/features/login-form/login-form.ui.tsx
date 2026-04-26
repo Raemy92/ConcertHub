@@ -1,8 +1,8 @@
-import { Lock, LogIn, Mail } from 'lucide-react'
+import { Lock, Mail } from 'lucide-react'
 import { FormEvent, useState } from 'react'
 
 import { authService } from '@/shared/auth/auth-service'
-import { FormInput } from '@/shared/ui'
+import { AuthShell, FormInput } from '@/shared/ui'
 
 interface LoginFormProps {
   onSuccess?: () => void
@@ -49,25 +49,32 @@ export const LoginForm = ({
   }
 
   return (
-    <div className="w-full max-w-md p-8 bg-gray-900 rounded-2xl shadow-xl border border-gray-800">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-white">Willkommen zurück</h2>
-        <p className="text-gray-400 mt-2">
-          Melde dich an, um deine Konzerte zu planen
-        </p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
+    <AuthShell
+      title="Willkommen zurück."
+      subtitle="Konzerte, Tickets, Mitfahrgelegenheit - alles an einem Ort."
+      footer={
+        <>
+          Noch kein Konto?{' '}
+          <button
+            onClick={onSwitchToRegister}
+            className="font-semibold cursor-pointer bg-transparent border-none p-0"
+            style={{ color: 'var(--accent)', fontSize: 13 }}
+          >
+            Registrieren
+          </button>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <FormInput
           label="E-Mail"
           type="email"
           value={email}
           onChange={setEmail}
-          placeholder="deine@email.ch"
+          placeholder="du@konzerthub.ch"
           required
           icon={Mail}
         />
-
         <FormInput
           label="Passwort"
           type="password"
@@ -78,57 +85,72 @@ export const LoginForm = ({
           icon={Lock}
         />
 
-        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+        {error && (
+          <p className="text-center" style={{ color: '#ff7788', fontSize: 13 }}>
+            {error}
+          </p>
+        )}
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+          className="font-bold cursor-pointer disabled:opacity-50"
+          style={{
+            marginTop: 8,
+            padding: 15,
+            borderRadius: 14,
+            background: 'linear-gradient(180deg, #8affc0, #5ee09a)',
+            color: '#031615',
+            border: 'none',
+            fontSize: 15,
+            boxShadow: '0 6px 20px rgba(124,255,178,0.3)'
+          }}
         >
-          {loading ? (
-            'Lädt...'
-          ) : (
-            <>
-              <LogIn className="w-5 h-5" />
-              Anmelden
-            </>
-          )}
+          {loading ? 'Lädt…' : 'Anmelden'}
         </button>
       </form>
 
-      <div className="relative my-8">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-800"></div>
-        </div>
-        <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-gray-900 text-gray-500">
-            Oder weiter mit
-          </span>
-        </div>
+      <div className="flex items-center gap-2.5 my-1">
+        <div
+          className="flex-1"
+          style={{ height: 0.5, background: 'rgba(255,255,255,0.1)' }}
+        />
+        <span
+          style={{
+            fontSize: 11,
+            color: 'rgba(255,255,255,0.4)',
+            letterSpacing: 0.5
+          }}
+        >
+          ODER
+        </span>
+        <div
+          className="flex-1"
+          style={{ height: 0.5, background: 'rgba(255,255,255,0.1)' }}
+        />
       </div>
 
       <button
         onClick={handleGoogleLogin}
         disabled={loading}
-        className="w-full bg-white hover:bg-gray-100 text-gray-900 font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+        className="font-semibold cursor-pointer flex items-center justify-center gap-2.5 disabled:opacity-50"
+        style={{
+          padding: 13,
+          borderRadius: 14,
+          background: 'rgba(255,255,255,0.05)',
+          color: '#fff',
+          border: '0.5px solid rgba(255,255,255,0.15)',
+          fontSize: 14
+        }}
       >
         <img
           src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
           alt="Google"
-          className="w-5 h-5"
+          width={18}
+          height={18}
         />
-        Google Login
+        Mit Google fortfahren
       </button>
-
-      <p className="mt-8 text-center text-gray-400">
-        Noch kein Konto?{' '}
-        <button
-          onClick={onSwitchToRegister}
-          className="text-red-500 hover:underline font-medium"
-        >
-          Jetzt registrieren
-        </button>
-      </p>
-    </div>
+    </AuthShell>
   )
 }

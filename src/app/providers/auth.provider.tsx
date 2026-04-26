@@ -1,5 +1,5 @@
 import { onAuthStateChanged } from 'firebase/auth'
-import { doc, getDoc } from 'firebase/firestore'
+import { doc, getDoc, onSnapshot } from 'firebase/firestore'
 import {
   createContext,
   ReactNode,
@@ -8,6 +8,7 @@ import {
   useState
 } from 'react'
 
+import { NotificationPrefs } from '@/entities/user'
 import { auth, db } from '@/shared/api/firebase/config'
 
 export interface AppUser {
@@ -15,6 +16,7 @@ export interface AppUser {
   email: string | null
   displayName: string
   photoURL: string | null
+  notificationPrefs?: NotificationPrefs
 }
 
 interface AuthContextType {
@@ -32,31 +34,55 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    let unsubUserDoc: (() => void) | undefined
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        let displayName = firebaseUser.displayName
+      unsubUserDoc?.()
+      unsubUserDoc = undefined
 
-        if (!displayName) {
-          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid))
-          if (userDoc.exists()) {
-            displayName = userDoc.data().displayName
-          }
-        }
-
-        setUser({
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          displayName:
-            displayName || firebaseUser.email || 'Unbekannter Benutzer',
-          photoURL: firebaseUser.photoURL
-        })
-      } else {
+      if (!firebaseUser) {
         setUser(null)
+        setLoading(false)
+        return
       }
+
+      let displayName = firebaseUser.displayName
+      if (!displayName) {
+        const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid))
+        if (userDoc.exists()) {
+          displayName = userDoc.data().displayName
+        }
+      }
+
+      setUser({
+        uid: firebaseUser.uid,
+        email: firebaseUser.email,
+        displayName:
+          displayName || firebaseUser.email || 'Unbekannter Benutzer',
+        photoURL: firebaseUser.photoURL
+      })
       setLoading(false)
+
+      unsubUserDoc = onSnapshot(doc(db, 'users', firebaseUser.uid), (snap) => {
+        if (!snap.exists()) return
+        const data = snap.data()
+        setUser((prev) =>
+          prev
+            ? {
+                ...prev,
+                notificationPrefs: data.notificationPrefs as
+                  | NotificationPrefs
+                  | undefined
+              }
+            : prev
+        )
+      })
     })
 
-    return () => unsubscribe()
+    return () => {
+      unsubUserDoc?.()
+      unsubscribe()
+    }
   }, [])
 
   return (

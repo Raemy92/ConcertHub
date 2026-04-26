@@ -5,7 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:staging": "vite --mode staging",
     "build": "npm run format:fix && vite build",
+    "build:staging": "npm run format:fix && vite build --mode staging",
+    "deploy:staging": "npm run build:staging && firebase deploy -P staging",
+    "deploy:production": "npm run build && firebase deploy -P default",
     "start": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",

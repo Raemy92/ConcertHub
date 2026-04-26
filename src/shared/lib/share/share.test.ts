@@ -17,7 +17,7 @@ const originalClipboard = Object.getOwnPropertyDescriptor(
 
 function setShare(fn: ((data: ShareData) => Promise<void>) | undefined): void {
   if (fn === undefined) {
-    // @ts-expect-error — allow deletion for unsupported-environment tests
+    // @ts-expect-error - allow deletion for unsupported-environment tests
     delete (navigator as Navigator).share
     return
   }
@@ -30,7 +30,7 @@ function setShare(fn: ((data: ShareData) => Promise<void>) | undefined): void {
 
 function setCanShare(fn: ((data: ShareData) => boolean) | undefined): void {
   if (fn === undefined) {
-    // @ts-expect-error — allow deletion
+    // @ts-expect-error - allow deletion
     delete (navigator as Navigator).canShare
     return
   }
@@ -56,7 +56,6 @@ function restoreDescriptor(
   if (descriptor) {
     Object.defineProperty(navigator, key, descriptor)
   } else {
-    // @ts-expect-error — allow deletion for cleanup
     delete (navigator as Navigator)[key]
   }
 }

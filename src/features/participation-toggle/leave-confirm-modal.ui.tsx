@@ -15,24 +15,42 @@ export const LeaveConfirmModal = ({
 }: LeaveConfirmModalProps) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Abmeldung">
-      <div className="flex flex-col gap-6">
-        <p className="text-gray-400">
+      <div className="flex flex-col gap-5">
+        <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 14 }}>
           Möchtest du dich wirklich von diesem Konzert abmelden?
         </p>
         <div className="flex gap-3">
           <button
             onClick={onClose}
             disabled={loading}
-            className="flex-1 px-4 py-3 rounded-xl font-bold bg-gray-800 hover:bg-gray-700 disabled:opacity-50 text-white transition-colors"
+            className="flex-1 font-semibold cursor-pointer"
+            style={{
+              padding: '12px 14px',
+              borderRadius: 12,
+              background: 'rgba(255,255,255,0.05)',
+              color: '#fff',
+              border: '0.5px solid rgba(255,255,255,0.1)',
+              fontSize: 14,
+              opacity: loading ? 0.5 : 1
+            }}
           >
             Abbrechen
           </button>
           <button
             onClick={onConfirm}
             disabled={loading}
-            className="flex-1 px-4 py-3 rounded-xl font-bold bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white transition-colors"
+            className="flex-1 font-semibold cursor-pointer"
+            style={{
+              padding: '12px 14px',
+              borderRadius: 12,
+              background: 'rgba(255,85,119,0.15)',
+              color: '#ff7788',
+              border: '0.5px solid rgba(255,85,119,0.35)',
+              fontSize: 14,
+              opacity: loading ? 0.5 : 1
+            }}
           >
-            {loading ? 'Wird gespeichert...' : 'Ja, abmelden'}
+            {loading ? 'Wird gespeichert …' : 'Ja, abmelden'}
           </button>
         </div>
       </div>

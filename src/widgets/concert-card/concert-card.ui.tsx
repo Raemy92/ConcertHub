@@ -1,45 +1,39 @@
 import {
-  Calendar,
   CalendarPlus,
+  Car,
   Check,
-  ChevronRight,
   Clock,
-  DoorOpen,
   Edit2,
   MapPin,
   Share2,
+  Ticket,
   Users
 } from 'lucide-react'
-import { MouseEvent, useEffect, useRef, useState } from 'react'
+import { KeyboardEvent, MouseEvent, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { useAuth } from '@/app/providers/auth.provider'
 import { Concert } from '@/entities/concert'
-import { Participation, participationService } from '@/entities/participation'
-import { ParticipationToggle } from '@/features/participation-toggle'
+import { Participation } from '@/entities/participation'
 import { downloadConcertIcs } from '@/shared/lib/ics'
 import { shareOrCopy } from '@/shared/lib/share'
+import { Chip, ConcertHero, GenrePill } from '@/shared/ui'
 
 interface ConcertCardProps {
   concert: Concert
+  participations: Participation[]
   onEdit: (concert: Concert) => void
 }
 
-export const ConcertCard = ({ concert, onEdit }: ConcertCardProps) => {
+export const ConcertCard = ({
+  concert,
+  participations,
+  onEdit
+}: ConcertCardProps) => {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const [participations, setParticipations] = useState<Participation[]>([])
   const [justCopied, setJustCopied] = useState(false)
   const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  useEffect(() => {
-    if (concert.id) {
-      return participationService.subscribeByConcert(
-        concert.id,
-        setParticipations
-      )
-    }
-  }, [concert.id])
 
   useEffect(() => {
     return () => {
@@ -51,6 +45,15 @@ export const ConcertCard = ({ concert, onEdit }: ConcertCardProps) => {
 
   const userParticipation = participations.find((p) => p.userId === user?.uid)
   const isOwner = user?.uid === concert.createdBy
+  const youJoined = !!userParticipation
+
+  const drivers = participations.filter((p) => p.isDriver)
+  const totalSeats = drivers.reduce((s, d) => s + (d.availableSeats || 0), 0)
+  const seatsTaken = participations.filter((p) => p.driverId).length
+  const seatsLeft = Math.max(0, totalSeats - seatsTaken)
+  const withTickets = participations.filter((p) => p.hasTicket).length
+  const allHaveTicket =
+    withTickets === participations.length && participations.length > 0
 
   const handleEditClick = (e: MouseEvent) => {
     e.stopPropagation()
@@ -82,108 +85,175 @@ export const ConcertCard = ({ concert, onEdit }: ConcertCardProps) => {
   }
 
   const handleNavigateToDetail = () => {
-    navigate(`/concert/${concert.id}`)
+    navigate(`concert/${concert.id}`)
   }
 
-  const formattedDate = new Date(concert.date).toLocaleDateString('de-CH')
+  const handleCardKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      handleNavigateToDetail()
+    }
+  }
+
   const formattedPrice = concert.price.toFixed(2)
-  const displayedGenres = concert.genres.slice(0, 2)
+  const displayedGenres = concert.genres.slice(0, 3)
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       onClick={handleNavigateToDetail}
-      className="bg-gray-900 border border-gray-800 rounded-2xl p-4 md:p-6 hover:border-red-600/50 transition-all group flex flex-col cursor-pointer hover:shadow-xl hover:shadow-red-900/10"
+      onKeyDown={handleCardKeyDown}
+      className="block w-full text-left cursor-pointer transition-all hover:-translate-y-0.5 relative"
+      style={{
+        background: 'rgba(255,255,255,0.03)',
+        border: '0.5px solid rgba(255,255,255,0.08)',
+        borderRadius: 20,
+        overflow: 'hidden'
+      }}
     >
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex-1">
-          <h3 className="text-xl font-bold text-white group-hover:text-red-500 transition-colors line-clamp-1">
-            {concert.band}
-          </h3>
-          <div className="flex flex-wrap gap-1 mt-1">
-            {displayedGenres.map((genre, index) => (
-              <span
-                key={index}
-                className="text-[9px] text-red-400 uppercase font-bold tracking-wider"
-              >
-                {genre}
-                {index < displayedGenres.length - 1 ? ' \u2022' : ''}
-              </span>
+      {youJoined && (
+        <div
+          className="absolute font-bold uppercase"
+          style={{
+            top: 12,
+            left: 12,
+            zIndex: 2,
+            background: 'rgba(124,255,178,0.95)',
+            color: '#0a1220',
+            padding: '3px 8px',
+            borderRadius: 999,
+            fontSize: 10,
+            letterSpacing: 0.3
+          }}
+        >
+          Dabei
+        </div>
+      )}
+
+      <ConcertHero
+        band={concert.band}
+        openingBands={concert.openingBands}
+        genres={concert.genres}
+        date={concert.date}
+        height={140}
+      />
+
+      <div className="px-3.5 pt-3 pb-3.5">
+        <div
+          className="flex items-center gap-1.5 mb-2 flex-wrap"
+          style={{ color: 'rgba(255,255,255,0.65)', fontSize: 12.5 }}
+        >
+          <MapPin size={13} />
+          <span className="font-medium truncate" style={{ maxWidth: '70%' }}>
+            {concert.location}
+          </span>
+          <span style={{ opacity: 0.4 }}>·</span>
+          <Clock size={13} />
+          <span>{concert.startTime}</span>
+        </div>
+
+        {displayedGenres.length > 0 && (
+          <div className="flex gap-1.5 flex-wrap mb-2.5">
+            {displayedGenres.map((g, i) => (
+              <GenrePill key={`${g}-${i}`} tag={g} />
             ))}
           </div>
+        )}
+
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex gap-1.5 flex-wrap">
+            <Chip icon={Users}>{participations.length}</Chip>
+            <Chip icon={Ticket} tone={allHaveTicket ? 'green' : 'default'}>
+              {withTickets}/{participations.length}
+            </Chip>
+            <Chip icon={Car} tone={seatsLeft > 0 ? 'amber' : 'mute'}>
+              {drivers.length > 0
+                ? `${seatsLeft} Platz${seatsLeft !== 1 ? 'e' : ''}`
+                : 'kein Auto'}
+            </Chip>
+          </div>
+          <span
+            className="font-bold"
+            style={{
+              fontSize: 13,
+              color: 'rgba(255,255,255,0.95)',
+              fontVariantNumeric: 'tabular-nums'
+            }}
+          >
+            CHF {formattedPrice}
+          </span>
         </div>
-        <div className="flex gap-2">
+
+        <div
+          className="flex gap-1 mt-3 pt-3"
+          onClick={(e) => e.stopPropagation()}
+          style={{ borderTop: '0.5px solid rgba(255,255,255,0.06)' }}
+        >
           <button
             onClick={handleShareClick}
-            className="p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white transition-colors"
+            className="flex items-center justify-center cursor-pointer"
             title={justCopied ? 'Link kopiert' : 'Link teilen'}
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 10,
+              background: 'rgba(255,255,255,0.04)',
+              border: '0.5px solid rgba(255,255,255,0.08)',
+              color: 'rgba(255,255,255,0.7)'
+            }}
           >
-            {justCopied ? (
-              <Check className="w-4 h-4" />
-            ) : (
-              <Share2 className="w-4 h-4" />
-            )}
+            {justCopied ? <Check size={14} /> : <Share2 size={14} />}
           </button>
           <button
             onClick={handleCalendarDownload}
-            className="p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white transition-colors"
-            title="Zum Kalender hinzuf\u00fcgen"
+            className="flex items-center justify-center cursor-pointer"
+            title="Zum Kalender hinzufügen"
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 10,
+              background: 'rgba(255,255,255,0.04)',
+              border: '0.5px solid rgba(255,255,255,0.08)',
+              color: 'rgba(255,255,255,0.7)'
+            }}
           >
-            <CalendarPlus className="w-4 h-4" />
+            <CalendarPlus size={14} />
           </button>
           {isOwner && (
             <button
               onClick={handleEditClick}
-              className="p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white transition-colors"
+              className="flex items-center justify-center cursor-pointer"
               title="Bearbeiten"
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 10,
+                background: 'rgba(255,255,255,0.04)',
+                border: '0.5px solid rgba(255,255,255,0.08)',
+                color: 'rgba(255,255,255,0.7)'
+              }}
             >
-              <Edit2 className="w-4 h-4" />
+              <Edit2 size={14} />
             </button>
           )}
-        </div>
-      </div>
-
-      <div className="space-y-3 mb-6">
-        <div className="flex items-center gap-2 text-gray-400 text-sm">
-          <MapPin className="w-4 h-4 text-red-500" />
-          <span className="line-clamp-1">{concert.location}</span>
-        </div>
-        <div className="flex items-center gap-2 text-gray-400 text-sm">
-          <Calendar className="w-4 h-4 text-red-500" />
-          {formattedDate}
-        </div>
-        <div className="flex items-center gap-2 text-gray-400 text-sm">
-          <DoorOpen className="w-4 h-4 text-red-500" />
-          {concert.doors}
-        </div>
-        <div className="flex items-center gap-2 text-gray-400 text-sm">
-          <Clock className="w-4 h-4 text-red-500" />
-          {concert.startTime} - {concert.endTime}
-        </div>
-      </div>
-
-      <div className="mt-auto space-y-4">
-        <div className="pt-4 border-t border-gray-800 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-gray-500" />
-            <span className="text-gray-400 text-xs">
-              {participations.length} Teilnehmer
-            </span>
-          </div>
-          <span className="text-white font-bold">{formattedPrice} CHF</span>
-        </div>
-
-        <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-          {concert.id && (
-            <ParticipationToggle
-              concertId={concert.id}
-              currentParticipation={userParticipation}
-            />
-          )}
+          <div className="flex-1" />
           <button
-            onClick={handleNavigateToDetail}
-            className="flex-1 flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-bold transition-colors text-sm"
+            onClick={(e) => {
+              e.stopPropagation()
+              handleNavigateToDetail()
+            }}
+            className="cursor-pointer font-semibold"
+            style={{
+              padding: '7px 14px',
+              borderRadius: 10,
+              background: 'rgba(124,255,178,0.12)',
+              color: 'var(--accent)',
+              border: '0.5px solid rgba(124,255,178,0.3)',
+              fontSize: 12.5
+            }}
           >
-            Details <ChevronRight className="w-4 h-4" />
+            Details
           </button>
         </div>
       </div>

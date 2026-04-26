@@ -31,59 +31,128 @@ export const JoinConcertModal = ({
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="Anmeldung">
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-5">
         <button
           type="button"
           onClick={() => setIsDriver((prev) => !prev)}
-          className={`flex items-center justify-between w-full p-4 rounded-xl border transition-all ${
-            isDriver
-              ? 'bg-red-900/20 border-red-900/50 text-red-400'
-              : 'bg-gray-800 border-gray-700 text-gray-400'
-          }`}
+          className="flex items-center justify-between w-full cursor-pointer transition-all"
+          style={{
+            padding: 14,
+            borderRadius: 14,
+            background: isDriver
+              ? 'rgba(124,255,178,0.06)'
+              : 'rgba(255,255,255,0.03)',
+            border: isDriver
+              ? '0.5px solid rgba(124,255,178,0.25)'
+              : '0.5px solid rgba(255,255,255,0.08)'
+          }}
         >
           <div className="flex items-center gap-3">
-            <Car className="w-5 h-5" />
-            <span className="font-medium text-white">
-              Ich fahre mit dem Auto
-            </span>
+            <div
+              className="flex items-center justify-center"
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 10,
+                background: isDriver
+                  ? 'rgba(124,255,178,0.15)'
+                  : 'rgba(255,255,255,0.05)',
+                color: isDriver ? 'var(--accent)' : 'rgba(255,255,255,0.7)'
+              }}
+            >
+              <Car size={16} />
+            </div>
+            <div className="text-left">
+              <div
+                className="font-semibold text-white"
+                style={{ fontSize: 14 }}
+              >
+                Ich fahre mit dem Auto
+              </div>
+              <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.5)' }}>
+                {isDriver ? 'Plätze festlegen' : 'Antippen zum Aktivieren'}
+              </div>
+            </div>
           </div>
           <div
-            className={`w-11 h-6 rounded-full transition-colors flex items-center px-0.5 ${
-              isDriver ? 'bg-red-600' : 'bg-gray-600'
-            }`}
+            className="flex items-center transition-colors"
+            style={{
+              width: 44,
+              height: 26,
+              borderRadius: 999,
+              padding: 2,
+              background: isDriver ? 'var(--accent)' : 'rgba(255,255,255,0.12)'
+            }}
           >
             <div
-              className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                isDriver ? 'translate-x-5' : 'translate-x-0'
-              }`}
+              className="transition-transform"
+              style={{
+                width: 22,
+                height: 22,
+                borderRadius: 999,
+                background: '#fff',
+                transform: isDriver ? 'translateX(18px)' : 'translateX(0)',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.25)'
+              }}
             />
           </div>
         </button>
 
         {isDriver && (
-          <div className="flex items-center justify-between gap-4 px-1 animate-in fade-in duration-200">
-            <label className="text-sm font-medium text-gray-400">
+          <div
+            className="flex items-center justify-between gap-4 animate-fade-in"
+            style={{ padding: '0 4px' }}
+          >
+            <label
+              className="font-medium"
+              style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)' }}
+            >
               Verfügbare Plätze
             </label>
             <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => setSeats((s) => Math.max(1, s - 1))}
-                className="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white transition-colors disabled:opacity-40"
                 disabled={seats <= 1}
+                className="flex items-center justify-center cursor-pointer"
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: 10,
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '0.5px solid rgba(255,255,255,0.1)',
+                  color: '#fff',
+                  opacity: seats <= 1 ? 0.4 : 1
+                }}
               >
-                <Minus className="w-4 h-4" />
+                <Minus size={14} />
               </button>
-              <span className="w-6 text-center text-white font-bold tabular-nums">
+              <span
+                className="font-bold text-center"
+                style={{
+                  width: 24,
+                  fontVariantNumeric: 'tabular-nums',
+                  fontSize: 15
+                }}
+              >
                 {seats}
               </span>
               <button
                 type="button"
                 onClick={() => setSeats((s) => Math.min(9, s + 1))}
-                className="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white transition-colors disabled:opacity-40"
                 disabled={seats >= 9}
+                className="flex items-center justify-center cursor-pointer"
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: 10,
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '0.5px solid rgba(255,255,255,0.1)',
+                  color: '#fff',
+                  opacity: seats >= 9 ? 0.4 : 1
+                }}
               >
-                <Plus className="w-4 h-4" />
+                <Plus size={14} />
               </button>
             </div>
           </div>
@@ -92,9 +161,19 @@ export const JoinConcertModal = ({
         <button
           onClick={handleConfirm}
           disabled={loading}
-          className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white px-4 py-3 rounded-xl font-bold transition-colors"
+          className="w-full font-semibold cursor-pointer"
+          style={{
+            padding: '14px 16px',
+            borderRadius: 14,
+            background: 'var(--accent)',
+            color: '#0a1220',
+            border: 'none',
+            fontSize: 14.5,
+            opacity: loading ? 0.6 : 1,
+            boxShadow: loading ? 'none' : '0 8px 24px var(--accent-glow)'
+          }}
         >
-          {loading ? 'Wird gespeichert...' : 'Bestätigen'}
+          {loading ? 'Wird gespeichert …' : 'Bestätigen'}
         </button>
       </div>
     </Modal>
