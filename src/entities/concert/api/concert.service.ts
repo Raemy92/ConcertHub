@@ -33,6 +33,20 @@ export const concertService = {
     })) as Concert[]
   },
 
+  async getAllPast(): Promise<Concert[]> {
+    const q = query(
+      collection(db, CONCERTS_COLLECTION),
+      where('isArchived', '==', false),
+      where('date', '<', getTodayDateString()),
+      orderBy('date', 'desc')
+    )
+    const querySnapshot = await getDocs(q)
+    return querySnapshot.docs.map((d) => ({
+      id: d.id,
+      ...d.data()
+    })) as Concert[]
+  },
+
   async getById(id: string): Promise<Concert | null> {
     const docRef = doc(db, CONCERTS_COLLECTION, id)
     const docSnap = await getDoc(docRef)

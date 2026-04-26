@@ -2,17 +2,18 @@ import {
   Calendar,
   Clock,
   Coins,
-  Link,
+  Link2,
   MapPin,
   Music,
   Plus,
   Trash2,
   X
 } from 'lucide-react'
-import { FormEvent, useState } from 'react'
+import { FormEvent, KeyboardEvent, useState } from 'react'
 
 import { useAuth } from '@/app/providers/auth.provider'
 import { Concert, concertService } from '@/entities/concert'
+import { FormInput, GENRE_GROUPS, genreGradient } from '@/shared/ui'
 
 import { ArchiveConfirmModal } from './archive-confirm-modal.ui'
 
@@ -21,6 +22,16 @@ interface ConcertFormProps {
   onSuccess: () => void
   onCancel: () => void
 }
+
+const KNOWN_GENRE_KEYS = new Set(GENRE_GROUPS.flatMap((group) => group.keys))
+
+const prettifyGenre = (key: string): string => key.replace(/-/g, ' ')
+
+const normalizeGenre = (value: string): string =>
+  value.toLowerCase().trim().replace(/\s+/g, '-')
+
+const isKnownGenre = (value: string): boolean =>
+  KNOWN_GENRE_KEYS.has(normalizeGenre(value))
 
 export const ConcertForm = ({
   concert,
@@ -34,7 +45,7 @@ export const ConcertForm = ({
   )
   const [newOpeningBand, setNewOpeningBand] = useState('')
   const [genres, setGenres] = useState<string[]>(concert?.genres || [])
-  const [newGenre, setNewGenre] = useState('')
+  const [customGenre, setCustomGenre] = useState('')
   const [location, setLocation] = useState(concert?.location || '')
   const [date, setDate] = useState(concert?.date || '')
   const [startTime, setStartTime] = useState(concert?.startTime || '')
@@ -87,8 +98,9 @@ export const ConcertForm = ({
   }
 
   const addOpeningBand = () => {
-    if (newOpeningBand.trim()) {
-      setOpeningBands([...openingBands, newOpeningBand.trim()])
+    const trimmed = newOpeningBand.trim()
+    if (trimmed && !openingBands.includes(trimmed)) {
+      setOpeningBands([...openingBands, trimmed])
       setNewOpeningBand('')
     }
   }
@@ -97,255 +109,416 @@ export const ConcertForm = ({
     setOpeningBands(openingBands.filter((_, i) => i !== index))
   }
 
-  const addGenre = () => {
-    if (newGenre.trim()) {
-      setGenres([...genres, newGenre.trim()])
-      setNewGenre('')
+  const toggleGenre = (label: string) => {
+    setGenres((prev) => {
+      const target = normalizeGenre(label)
+      const idx = prev.findIndex((g) => normalizeGenre(g) === target)
+      if (idx >= 0) return prev.filter((_, i) => i !== idx)
+      return [...prev, label]
+    })
+  }
+
+  const addCustomGenre = () => {
+    const trimmed = customGenre.trim().toLowerCase()
+    if (!trimmed) return
+    const target = normalizeGenre(trimmed)
+    if (genres.some((g) => normalizeGenre(g) === target)) {
+      setCustomGenre('')
+      return
+    }
+    setGenres([...genres, trimmed])
+    setCustomGenre('')
+  }
+
+  const handleOpeningKey = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      addOpeningBand()
     }
   }
 
-  const removeGenre = (index: number) => {
-    setGenres(genres.filter((_, i) => i !== index))
+  const handleCustomGenreKey = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      addCustomGenre()
+    }
   }
+
+  const sectionLabel = (text: string) => (
+    <div
+      className="block uppercase font-semibold mb-2"
+      style={{
+        fontSize: 11,
+        letterSpacing: 0.5,
+        color: 'rgba(255,255,255,0.55)'
+      }}
+    >
+      {text}
+    </div>
+  )
 
   return (
     <div className="w-full">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-400">
-              Haupt-Band
-            </label>
-            <div className="relative">
-              <Music className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
-              <input
-                required
-                type="text"
-                value={band}
-                onChange={(e) => setBand(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 pl-9 pr-2 text-white focus:ring-2 focus:ring-red-600 outline-none"
-                placeholder="Band Name"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-400">Ort</label>
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
-              <input
-                required
-                type="text"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 pl-9 pr-2 text-white focus:ring-2 focus:ring-red-600 outline-none"
-                placeholder="Veranstaltungsort"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-400">Datum</label>
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
-              <input
-                required
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 pl-9 pr-2 text-white focus:ring-2 focus:ring-red-600 outline-none"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-400">
-              Preis (CHF)
-            </label>
-            <div className="relative">
-              <Coins className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
-              <input
-                required
-                type="number"
-                step="0.05"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 pl-9 pr-2 text-white focus:ring-2 focus:ring-red-600 outline-none"
-                placeholder="69.00"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:col-span-2 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-400">
-                Türöffnung
-              </label>
-              <div className="relative">
-                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
-                <input
-                  required
-                  type="time"
-                  value={doors}
-                  onChange={(e) => setDoors(e.target.value)}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 pl-9 pr-2 text-white focus:ring-2 focus:ring-red-600 outline-none"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-400">Start</label>
-              <div className="relative">
-                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
-                <input
-                  required
-                  type="time"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 pl-9 pr-2 text-white focus:ring-2 focus:ring-red-600 outline-none"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-400">Ende</label>
-              <div className="relative">
-                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
-                <input
-                  required
-                  type="time"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 pl-9 pr-2 text-white focus:ring-2 focus:ring-red-600 outline-none"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="text-sm font-medium text-gray-400">
-              Link zum Event
-            </label>
-            <div className="relative">
-              <Link className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
-              <input
-                type="url"
-                value={eventUrl}
-                onChange={(e) => setEventUrl(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 pl-9 pr-2 text-white focus:ring-2 focus:ring-red-600 outline-none"
-                placeholder="https://example.com"
-              />
-            </div>
-          </div>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormInput
+            label="Haupt-Band"
+            type="text"
+            value={band}
+            onChange={setBand}
+            placeholder="Band Name"
+            icon={Music}
+            required
+          />
+          <FormInput
+            label="Ort"
+            type="text"
+            value={location}
+            onChange={setLocation}
+            placeholder="Veranstaltungsort"
+            icon={MapPin}
+            required
+          />
+          <FormInput
+            label="Datum"
+            type="date"
+            value={date}
+            onChange={setDate}
+            icon={Calendar}
+            required
+          />
+          <FormInput
+            label="Preis (CHF)"
+            type="number"
+            value={price}
+            onChange={setPrice}
+            placeholder="69"
+            icon={Coins}
+            step="0.05"
+            required
+          />
+          <FormInput
+            label="Türöffnung"
+            type="time"
+            value={doors}
+            onChange={setDoors}
+            icon={Clock}
+            required
+          />
+          <FormInput
+            label="Start"
+            type="time"
+            value={startTime}
+            onChange={setStartTime}
+            icon={Clock}
+            required
+          />
+          <FormInput
+            label="Ende"
+            type="time"
+            value={endTime}
+            onChange={setEndTime}
+            icon={Clock}
+            required
+          />
+          <FormInput
+            label="Event-Link"
+            type="url"
+            value={eventUrl}
+            onChange={setEventUrl}
+            placeholder="https://…"
+            icon={Link2}
+          />
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-400">Vorbands</label>
+        <div>
+          {sectionLabel('Vorbands')}
           <div className="flex gap-2">
-            <input
-              type="text"
-              value={newOpeningBand}
-              onChange={(e) => setNewOpeningBand(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  addOpeningBand()
-                }
+            <div
+              className="flex-1 flex items-center gap-2"
+              style={{
+                background: 'rgba(255,255,255,0.04)',
+                border: '0.5px solid rgba(255,255,255,0.1)',
+                borderRadius: 14,
+                padding: '0 14px'
               }}
-              className="flex-1 bg-gray-800 border border-gray-700 rounded-lg py-2 px-4 text-white focus:ring-2 focus:ring-red-600 outline-none"
-              placeholder="Vorband hinzufügen"
-            />
+            >
+              <input
+                type="text"
+                value={newOpeningBand}
+                onChange={(e) => setNewOpeningBand(e.target.value)}
+                onKeyDown={handleOpeningKey}
+                placeholder="Vorband hinzufügen"
+                className="flex-1 bg-transparent border-none outline-none text-white placeholder-white/40"
+                style={{
+                  padding: '14px 0',
+                  fontSize: 14.5,
+                  fontWeight: 500,
+                  fontFamily: 'inherit'
+                }}
+              />
+            </div>
             <button
               type="button"
               onClick={addOpeningBand}
-              className="p-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-white"
+              className="flex items-center justify-center cursor-pointer"
+              style={{
+                width: 48,
+                borderRadius: 14,
+                background: 'rgba(124,255,178,0.1)',
+                border: '0.5px solid rgba(124,255,178,0.25)',
+                color: 'var(--accent)'
+              }}
+              aria-label="Hinzufügen"
             >
-              <Plus className="w-5 h-5" />
+              <Plus size={18} />
             </button>
           </div>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {openingBands.map((ob, i) => (
-              <span
-                key={i}
-                className="flex items-center gap-1 bg-gray-700 text-white px-3 py-1 rounded-full text-sm"
-              >
-                {ob}
-                <button type="button" onClick={() => removeOpeningBand(i)}>
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            ))}
-          </div>
+          {openingBands.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2.5">
+              {openingBands.map((ob, i) => (
+                <span
+                  key={`${ob}-${i}`}
+                  className="inline-flex items-center gap-1.5"
+                  style={{
+                    padding: '5px 6px 5px 10px',
+                    borderRadius: 999,
+                    background: 'rgba(255,255,255,0.06)',
+                    border: '0.5px solid rgba(255,255,255,0.08)',
+                    fontSize: 12.5
+                  }}
+                >
+                  {ob}
+                  <button
+                    type="button"
+                    onClick={() => removeOpeningBand(i)}
+                    className="flex items-center justify-center cursor-pointer"
+                    style={{
+                      width: 16,
+                      height: 16,
+                      borderRadius: 999,
+                      background: 'rgba(255,255,255,0.08)',
+                      border: 'none',
+                      color: 'rgba(255,255,255,0.7)'
+                    }}
+                    aria-label="Entfernen"
+                  >
+                    <X size={9} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-400">Genres</label>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={newGenre}
-              onChange={(e) => setNewGenre(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  addGenre()
-                }
+        <div>
+          {sectionLabel('Genres')}
+          <div className="flex flex-col gap-3">
+            {GENRE_GROUPS.map((group) => (
+              <div key={group.label}>
+                <div
+                  className="uppercase font-semibold mb-1.5"
+                  style={{
+                    fontSize: 10,
+                    letterSpacing: 0.6,
+                    color: 'rgba(255,255,255,0.35)'
+                  }}
+                >
+                  {group.label}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {group.keys.map((key) => {
+                    const label = prettifyGenre(key)
+                    const active = genres.some((g) => normalizeGenre(g) === key)
+                    const grad = genreGradient(key)
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => toggleGenre(label)}
+                        className="inline-flex items-center gap-1.5 cursor-pointer font-medium lowercase"
+                        style={{
+                          padding: '5px 11px',
+                          borderRadius: 999,
+                          background: active
+                            ? 'rgba(124,255,178,0.1)'
+                            : 'rgba(255,255,255,0.03)',
+                          border: active
+                            ? '0.5px solid rgba(124,255,178,0.35)'
+                            : '0.5px solid rgba(255,255,255,0.08)',
+                          color: active ? '#fff' : 'rgba(255,255,255,0.65)',
+                          fontSize: 12
+                        }}
+                      >
+                        <span
+                          style={{
+                            width: 7,
+                            height: 7,
+                            borderRadius: 999,
+                            background: grad.a,
+                            boxShadow: active ? `0 0 8px ${grad.a}` : 'none'
+                          }}
+                        />
+                        {label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+          {genres.filter((g) => !isKnownGenre(g)).length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {genres
+                .filter((g) => !isKnownGenre(g))
+                .map((g, i) => (
+                  <span
+                    key={`${g}-${i}`}
+                    className="inline-flex items-center gap-1.5"
+                    style={{
+                      padding: '5px 6px 5px 10px',
+                      borderRadius: 999,
+                      background: 'rgba(199,125,255,0.08)',
+                      border: '0.5px solid rgba(199,125,255,0.25)',
+                      color: '#d7b3ff',
+                      fontSize: 12
+                    }}
+                  >
+                    {g}
+                    <button
+                      type="button"
+                      onClick={() => toggleGenre(g)}
+                      className="flex items-center justify-center cursor-pointer"
+                      style={{
+                        width: 16,
+                        height: 16,
+                        borderRadius: 999,
+                        background: 'rgba(255,255,255,0.08)',
+                        border: 'none',
+                        color: 'rgba(255,255,255,0.7)'
+                      }}
+                      aria-label="Entfernen"
+                    >
+                      <X size={9} />
+                    </button>
+                  </span>
+                ))}
+            </div>
+          )}
+          <div className="flex gap-2 mt-2.5">
+            <div
+              className="flex-1 flex items-center gap-2"
+              style={{
+                background: 'rgba(255,255,255,0.04)',
+                border: '0.5px solid rgba(255,255,255,0.1)',
+                borderRadius: 14,
+                padding: '0 14px'
               }}
-              className="flex-1 bg-gray-800 border border-gray-700 rounded-lg py-2 px-4 text-white focus:ring-2 focus:ring-red-600 outline-none"
-              placeholder="Genre hinzufügen"
-            />
+            >
+              <input
+                type="text"
+                value={customGenre}
+                onChange={(e) => setCustomGenre(e.target.value)}
+                onKeyDown={handleCustomGenreKey}
+                placeholder="Eigenes Genre"
+                className="flex-1 bg-transparent border-none outline-none text-white placeholder-white/40"
+                style={{
+                  padding: '12px 0',
+                  fontSize: 13.5,
+                  fontWeight: 500,
+                  fontFamily: 'inherit'
+                }}
+              />
+            </div>
             <button
               type="button"
-              onClick={addGenre}
-              className="p-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-white"
+              onClick={addCustomGenre}
+              className="flex items-center justify-center cursor-pointer"
+              style={{
+                width: 48,
+                borderRadius: 14,
+                background: 'rgba(255,255,255,0.04)',
+                border: '0.5px solid rgba(255,255,255,0.1)',
+                color: 'rgba(255,255,255,0.7)'
+              }}
+              aria-label="Genre hinzufügen"
             >
-              <Plus className="w-5 h-5" />
+              <Plus size={18} />
             </button>
-          </div>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {genres.map((g, i) => (
-              <span
-                key={i}
-                className="flex items-center gap-1 bg-red-900/50 text-red-200 border border-red-800 px-3 py-1 rounded-full text-sm"
-              >
-                {g}
-                <button type="button" onClick={() => removeGenre(i)}>
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            ))}
           </div>
         </div>
 
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-
-        <div className="flex gap-4 pt-4">
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-lg transition-colors disabled:opacity-50"
+        {error && (
+          <p
+            style={{
+              color: '#ff7788',
+              fontSize: 13,
+              padding: '10px 12px',
+              borderRadius: 10,
+              background: 'rgba(255,85,119,0.08)',
+              border: '0.5px solid rgba(255,85,119,0.2)'
+            }}
           >
-            {loading ? 'Lädt...' : concert ? 'Speichern' : 'Konzert erstellen'}
-          </button>
+            {error}
+          </p>
+        )}
+
+        <div className="flex gap-3 pt-1">
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 bg-gray-800 hover:bg-gray-700 text-white font-bold py-2 rounded-lg transition-colors"
+            className="flex-1 font-semibold cursor-pointer"
+            style={{
+              padding: '14px 16px',
+              borderRadius: 14,
+              background: 'rgba(255,255,255,0.05)',
+              color: '#fff',
+              border: '0.5px solid rgba(255,255,255,0.1)',
+              fontSize: 14.5
+            }}
           >
             Abbrechen
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex-1 font-semibold cursor-pointer"
+            style={{
+              padding: '14px 16px',
+              borderRadius: 14,
+              background: 'var(--accent)',
+              color: '#0a1220',
+              border: 'none',
+              fontSize: 14.5,
+              boxShadow: loading ? 'none' : '0 8px 24px var(--accent-glow)',
+              opacity: loading ? 0.6 : 1
+            }}
+          >
+            {loading ? 'Lädt …' : concert ? 'Speichern' : 'Konzert erstellen'}
           </button>
         </div>
       </form>
 
       {concert && (
-        <div className="mt-8 pt-6 border-t border-gray-800">
+        <div
+          className="mt-7 pt-5"
+          style={{ borderTop: '0.5px solid rgba(255,255,255,0.08)' }}
+        >
           <button
             type="button"
             onClick={() => setShowArchiveConfirm(true)}
-            className="flex items-center justify-center gap-2 text-red-500 hover:text-red-400 text-sm"
+            className="flex items-center justify-center gap-2 w-full cursor-pointer font-semibold"
+            style={{
+              padding: '10px 14px',
+              borderRadius: 12,
+              background: 'rgba(255,85,119,0.06)',
+              color: '#ff7788',
+              border: '0.5px solid rgba(255,85,119,0.2)',
+              fontSize: 13
+            }}
           >
-            <Trash2 className="w-4 h-4" />
-            Konzert archivieren (löschen)
+            <Trash2 size={14} />
+            Konzert archivieren
           </button>
 
           <ArchiveConfirmModal

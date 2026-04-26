@@ -59,7 +59,7 @@ Each entity slice follows `model/types.ts` + `api/<name>.service.ts`:
 ### Key domain concepts
 
 - **Concert**: A gig with band info, location, date/time, price, and an `isArchived` flag.
-- **Participation**: Links a user to a concert, tracks `hasTicket`, `isDriver`, `availableSeats`, and `driverId` (for carpooling passengers).
+- **Participation**: Links a user to a concert, tracks `hasTicket`, `isDriver`, `availableSeats`, and `driverId` (for carpooling passengers). Document ID convention: `${concertId}_${userId}`.
 
 ### Routing
 
@@ -80,7 +80,19 @@ Tailwind CSS **v4** via `@tailwindcss/vite` plugin — configuration is CSS-base
 
 ### Environment & Firebase
 
-Firebase config is loaded from env vars in `./environments/` (not `.env` at root). Copy `environments/.env.example` to `environments/.env.local`. See `src/shared/api/firebase/config.ts`.
+Vite is configured with `envDir: './environments'` (see `vite.config.ts`), so `VITE_FIREBASE_*` vars are read from there — not from `.env` at the repo root. Copy `environments/.env.example` to `environments/.env.local`. Firebase is initialized in `src/shared/api/firebase/config.ts`.
+
+### PWA
+
+The app ships as a PWA via `vite-plugin-pwa` configured in `strategies: 'injectManifest'` mode (see `vite.config.ts`). The service-worker source lives at `src/sw.ts` and is bundled at build time. The SW does two jobs: Workbox precaching + runtime caching of third-party assets, and Firebase Cloud Messaging background-message handling (`onBackgroundMessage`, `notificationclick`).
+
+### Push notifications
+
+- **Client**: `src/shared/notifications/notifications.service.ts` handles permission prompt, FCM token registration (`getToken` with the VAPID key from `VITE_FIREBASE_VAPID_KEY`), and unregister. Tokens live at `users/{uid}/fcmTokens/{tokenId}` in Firestore.
+- **UI**: `src/features/notification-settings/` + `/settings` route (via `src/views/settings/`) lets users opt in and toggle two categories: `newConcert` and `newParticipant`. Preferences persist on `users/{uid}.notificationPrefs`.
+- **Server**: Firestore triggers in `functions/` (Cloud Functions v2, `europe-west1`, Node 20) fan out push notifications. `onConcertCreate` pings opted-in users when a concert is created (excluding the creator). `onParticipationCreate` pings the concert creator and co-participants when someone joins (excluding the joiner). Invalid tokens are pruned on send.
+- **Required env var**: `VITE_FIREBASE_VAPID_KEY` — generate in Firebase Console → Project settings → Cloud Messaging → Web Push certificates.
+- **Deploy prerequisites**: Blaze plan (for Cloud Functions — FCM itself is free on Spark). Rules live in `firestore.rules`. Deploy order: `firebase deploy --only firestore:rules`, then `firebase deploy --only functions`.
 
 ### Deploy
 
@@ -89,14 +101,19 @@ Firebase Hosting serves the `dist/` output. Build with `npm run build`, then `fi
 ### Testing
 
 - Framework: Vitest + `@testing-library/react`, JSDOM environment
-- Setup files in `.test/`
+- `vitest.config.mts` references `.test/vitest.globals.ts` (globalSetup) and `.test/vitest.setup.tsx` (setupFiles — runs `cleanup()` after each test), plus a `@/test-utils` alias pointing at `.test/`.
 - `src/entities/**` and `src/app/**` are excluded from coverage
 - No tests for `src/app/` or entity modules — focus on features/widgets/shared
 
 ### Tooling notes
 
 - ESLint uses **flat config** (`eslint.config.mjs`) with `simple-import-sort` and `unused-imports` plugins — imports must be sorted and unused imports are errors.
+- ESLint also enforces `@typescript-eslint/no-unsafe-member-access` as **error** (don't access properties on `any`-typed values — narrow or type them first) and `@typescript-eslint/no-explicit-any` as **warn**.
 - Pre-commit hooks (Husky + lint-staged) run ESLint fix + Prettier on staged files.
 - Semantic-release on `main` generates changelog and GitHub releases automatically.
 - Conventional commits are enforced; use `npm run commit` for the interactive prompt.
 - Unused variables must be prefixed with `_` (e.g., `_unused`) — the `unused-imports/no-unused-vars` rule enforces this via `varsIgnorePattern: '^_'`.
+
+### Spec-driven changes (OpenSpec)
+
+The repo uses OpenSpec (`openspec/` with `changes/` and `specs/` subfolders, driven by `openspec/config.yaml`). For non-trivial work, prefer the OpenSpec skills (`/openspec-propose`, `/openspec-apply-change`, `/openspec-archive-change`) over ad-hoc edits so proposals, specs, and tasks stay in sync.

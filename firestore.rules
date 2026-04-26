@@ -1,0 +1,59 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // users: anyone signed in can read (needed to resolve display names in the UI);
+    // only the owning user can write their own doc.
+    match /users/{uid} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(uid);
+
+      // FCM tokens: strictly owner-only. No cross-user visibility — tokens are
+      // device credentials. Cloud Functions read via the Admin SDK and bypass
+      // these rules.
+      match /fcmTokens/{tokenId} {
+        allow read, write: if isOwner(uid);
+      }
+    }
+
+    // concerts: any signed-in user can read and create. Only the creator can
+    // update / archive their own concert.
+    match /concerts/{concertId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.createdBy == request.auth.uid;
+      allow update: if isSignedIn()
+        && resource.data.createdBy == request.auth.uid;
+      allow delete: if false;
+    }
+
+    // participations: id convention is `${concertId}_${userId}`. A user can
+    // create / delete only their own participation doc. Updates are allowed
+    // either by the owning user (e.g. toggling hasTicket) or by any signed-in
+    // user if the write only touches the `driverId` field — this lets a
+    // driver assign/remove passengers and lets a leaving driver clear
+    // driverId on passenger docs.
+    match /participations/{participationId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && participationId == request.resource.data.concertId + '_' + request.auth.uid;
+      allow update: if isSignedIn()
+        && (
+          resource.data.userId == request.auth.uid
+          || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['driverId'])
+        );
+      allow delete: if isSignedIn()
+        && resource.data.userId == request.auth.uid;
+    }
+  }
+}
