@@ -59,6 +59,12 @@ jspm_packages/
 # Optional eslint cache
 .eslintcache
 
+# TypeScript incremental build cache
+*.tsbuildinfo
+
+# Claude Code local overrides (personal settings, hooks, paths)
+.claude/settings.local.json
+
 # Microbundle cache
 .rpt2_cache/
 .rts2_cache_cjs/
