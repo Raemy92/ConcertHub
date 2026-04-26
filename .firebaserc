@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "concerthub-4a3b8"
+    "default": "concerthub-4a3b8",
+    "staging": "concerthub-staging"
   }
 }
