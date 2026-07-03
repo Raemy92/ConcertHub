@@ -1,16 +1,16 @@
 ## 1. Firebase project prerequisites (manual, in the Firebase Console)
 
-- [ ] 1.1 In **Project settings → Cloud Messaging → Web configuration → Web Push certificates**, click **Generate key pair** and copy the public key. FCM itself works on the free Spark plan — this step does not require any plan upgrade.
-- [ ] 1.2 In the same **Cloud Messaging** tab, confirm that **Firebase Cloud Messaging API (V1)** shows as **Enabled** at the top. If it is disabled, click through to the Google Cloud Console and enable it.
-- [ ] 1.3 Upgrade the Firebase project from **Spark** to the **Blaze** pay-as-you-go plan — required to deploy Cloud Functions, which are needed for the server-side fan-out. FCM sending itself is free; the plan upgrade is for Functions hosting only.
-- [ ] 1.4 Immediately after the Blaze upgrade, set a low budget alert in **Usage and billing → Details & settings → Budget alerts** (e.g., 1 USD/month with email notification) so any runaway cost is flagged early. Expected real usage stays inside Blaze's always-free tier.
-- [ ] 1.5 Install `firebase-tools` globally (`npm i -g firebase-tools`) and run `firebase login` on the dev machine.
-- [ ] 1.6 Run `firebase use --add` inside the repo and select the ConcertHub project so `.firebaserc` is created.
+- [x] 1.1 In **Project settings → Cloud Messaging → Web configuration → Web Push certificates**, click **Generate key pair** and copy the public key. FCM itself works on the free Spark plan — this step does not require any plan upgrade.
+- [x] 1.2 In the same **Cloud Messaging** tab, confirm that **Firebase Cloud Messaging API (V1)** shows as **Enabled** at the top. If it is disabled, click through to the Google Cloud Console and enable it.
+- [x] 1.3 Upgrade the Firebase project from **Spark** to the **Blaze** pay-as-you-go plan — required to deploy Cloud Functions, which are needed for the server-side fan-out. FCM sending itself is free; the plan upgrade is for Functions hosting only.
+- [x] 1.4 Immediately after the Blaze upgrade, set a low budget alert in **Usage and billing → Details & settings → Budget alerts** (e.g., 1 USD/month with email notification) so any runaway cost is flagged early. Expected real usage stays inside Blaze's always-free tier.
+- [x] 1.5 Install `firebase-tools` globally (`npm i -g firebase-tools`) and run `firebase login` on the dev machine.
+- [x] 1.6 Run `firebase use --add` inside the repo and select the ConcertHub project so `.firebaserc` is created.
 
 ## 2. Environment + dependency setup
 
 - [x] 2.1 Add `VITE_FIREBASE_VAPID_KEY=` placeholder to `environments/.env.example` with an explanatory comment.
-- [ ] 2.2 Add the real VAPID public key to `environments/.env.local` under `VITE_FIREBASE_VAPID_KEY`.
+- [x] 2.2 Add the real VAPID public key to `environments/.env.local` under `VITE_FIREBASE_VAPID_KEY`.
 - [x] 2.3 Add the key to the Vite env typings in `src/vite-env.d.ts` so `import.meta.env.VITE_FIREBASE_VAPID_KEY` is typed.
 - [x] 2.4 Confirm `firebase` (already installed) includes the `firebase/messaging` and `firebase/messaging/sw` subpaths; no extra npm install needed on the client.
 
@@ -18,7 +18,7 @@
 
 - [x] 3.1 Create `firestore.rules` at the repo root with rules covering `users` (owner-only write, authenticated read), `users/{uid}/fcmTokens/{tokenId}` (owner-only read/write), `concerts` (authenticated read, authenticated create, creator-only update/archive), and `participations` (authenticated read, own-doc create/update/delete with id convention `{concertId}_{uid}`).
 - [x] 3.2 Add `firestore.rules` and `firestore.indexes.json` references to `firebase.json` under a `firestore` block.
-- [ ] 3.3 Deploy rules with `firebase deploy --only firestore:rules` and verify in the console.
+- [x] 3.3 Deploy rules with `firebase deploy --only firestore:rules` and verify in the console.
 
 ## 4. Service worker migration (generateSW → injectManifest)
 
@@ -63,17 +63,17 @@
 - [x] 8.5 Implement `functions/src/triggers/on-concert-create.ts` using `onDocumentCreated('concerts/{id}', ...)` (v2 Firestore trigger): read the new concert, query `users` where `notificationPrefs.newConcert == true`, drop the `createdBy` uid, call `sendToUsers` with title "Neues Konzert" and body `"${band} — ${date}"`, and `data: { concertId }`.
 - [x] 8.6 Implement `functions/src/triggers/on-participation-create.ts` using `onDocumentCreated('participations/{id}', ...)`: read the participation, fetch the concert for `createdBy` + `band`, query co-participants, dedupe, drop the joiner, filter by `notificationPrefs.newParticipant == true`, and fan out with title like "Neue Zusage" and body `"${displayName} kommt ans ${band}-Konzert"`, `data: { concertId }`.
 - [x] 8.7 Wire both triggers into `functions/src/index.ts` and export them.
-- [ ] 8.8 Build: `cd functions && npm run build`; deploy: `firebase deploy --only functions`.
+- [x] 8.8 Build: `cd functions && npm run build`; deploy: `firebase deploy --only functions`.
 
 ## 9. End-to-end verification
 
-- [ ] 9.1 In a desktop Chrome, install the PWA (Chrome → "Install ConcertHub"), open Settings, enable notifications, confirm permission prompt and that `users/{uid}/fcmTokens/...` appears in Firestore.
-- [ ] 9.2 In a second browser profile (or mobile device via https dev URL), sign in as a different user, enable notifications.
-- [ ] 9.3 User A creates a concert → verify user B receives a push with the band name and that tapping it opens `/concert/{id}`. Verify user A does NOT receive a push.
-- [ ] 9.4 User B joins the concert → verify user A (creator) receives a push. Verify user B does NOT receive a push.
-- [ ] 9.5 User A disables only the "Neue Teilnehmende" toggle; user B joins a second concert → verify user A receives no push, but still receives pushes for new concerts.
-- [ ] 9.6 User A toggles the master switch off → confirm `users/A/fcmTokens/*` is deleted and no further pushes arrive at that device.
-- [ ] 9.7 In the Firebase Console → Functions logs, confirm no errors across the above flows.
+- [x] 9.1 In a desktop Chrome, install the PWA (Chrome → "Install ConcertHub"), open Settings, enable notifications, confirm permission prompt and that `users/{uid}/fcmTokens/...` appears in Firestore.
+- [x] 9.2 In a second browser profile (or mobile device via https dev URL), sign in as a different user, enable notifications.
+- [x] 9.3 User A creates a concert → verify user B receives a push with the band name and that tapping it opens `/concert/{id}`. Verify user A does NOT receive a push.
+- [x] 9.4 User B joins the concert → verify user A (creator) receives a push. Verify user B does NOT receive a push.
+- [x] 9.5 User A disables only the "Neue Teilnehmende" toggle; user B joins a second concert → verify user A receives no push, but still receives pushes for new concerts.
+- [x] 9.6 User A toggles the master switch off → confirm `users/A/fcmTokens/*` is deleted and no further pushes arrive at that device.
+- [x] 9.7 In the Firebase Console → Functions logs, confirm no errors across the above flows.
 
 ## 10. Docs
 
