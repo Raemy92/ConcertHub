@@ -81,7 +81,7 @@ export const MainLayout = () => {
     navigate(base, { replace: true })
   }
 
-  const greetingName = user?.displayName?.split(' ')[0] || 'Crew'
+  const greetingName = user?.displayName?.split(' ')[0]
 
   return (
     <div className="min-h-screen text-white relative md:flex">
@@ -145,8 +145,12 @@ export const MainLayout = () => {
               className="mb-3"
               style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.5)' }}
             >
-              Willkommen zurück,{' '}
-              <span className="text-white">{greetingName}</span>
+              Willkommen zurück
+              {greetingName && (
+                <>
+                  , <span className="text-white">{greetingName}</span>
+                </>
+              )}
             </p>
 
             <div

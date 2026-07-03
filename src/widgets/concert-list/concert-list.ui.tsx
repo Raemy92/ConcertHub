@@ -35,7 +35,7 @@ const EmptyState = ({ variant, onCreate, onReset }: EmptyStateProps) => {
     none: {
       icon: Music,
       title: 'Noch keine Konzerte',
-      body: 'Plane dein erstes Konzert. Lade die Crew ein.',
+      body: 'Plane dein erstes Konzert.',
       action: onCreate
         ? { label: 'Konzert erstellen', onClick: onCreate }
         : undefined

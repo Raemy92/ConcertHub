@@ -1,4 +1,10 @@
-import { Bell, BellOff, CalendarPlus, UserPlus } from 'lucide-react'
+import {
+  Bell,
+  BellOff,
+  CalendarPlus,
+  MessageCircle,
+  UserPlus
+} from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { useAuth } from '@/app/providers/auth.provider'
@@ -13,7 +19,8 @@ import { ToggleRow } from '@/shared/ui'
 
 const DEFAULT_PREFS: NotificationPrefs = {
   newConcert: true,
-  newParticipant: true
+  newParticipant: true,
+  newComment: false
 }
 
 type Status = 'loading' | 'supported' | 'unsupported' | 'denied'
@@ -134,8 +141,7 @@ export const NotificationSettings = () => {
             marginTop: 4
           }}
         >
-          Erhalte Push-Nachrichten auf diesem Gerät, wenn im Crew-Kalender etwas
-          passiert.
+          Erhalte Push-Nachrichten auf diesem Gerät, wenn etwas Neues passiert.
         </p>
       </div>
 
@@ -196,6 +202,15 @@ export const NotificationSettings = () => {
             sublabel="Wenn sich jemand zu einem Deiner Konzerte anmeldet"
             active={prefs.newParticipant}
             onChange={(next) => handlePrefToggle('newParticipant', next)}
+            disabled={busy}
+          />
+
+          <ToggleRow
+            icon={MessageCircle}
+            label="Neue Kommentare"
+            sublabel="Du wirst informiert, wenn jemand auf einem deiner Konzerte kommentiert"
+            active={prefs.newComment ?? false}
+            onChange={(next) => handlePrefToggle('newComment', next)}
             disabled={busy}
           />
         </>
