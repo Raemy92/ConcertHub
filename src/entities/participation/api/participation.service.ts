@@ -3,7 +3,6 @@ import {
   deleteDoc,
   doc,
   DocumentReference,
-  getDoc,
   getDocs,
   onSnapshot,
   query,
@@ -14,6 +13,7 @@ import {
 
 import { db } from '@/shared/api/firebase/config'
 
+import { userService } from '../../user'
 import { Participation } from '../model/types'
 
 const PARTICIPATIONS_COLLECTION = 'participations'
@@ -27,22 +27,6 @@ const getParticipationRef = (
 ): DocumentReference =>
   doc(db, PARTICIPATIONS_COLLECTION, createParticipationId(concertId, userId))
 
-const resolveUserDisplayName = async (
-  userId: string,
-  fallback?: string
-): Promise<string> => {
-  try {
-    const userDoc = await getDoc(doc(db, 'users', userId))
-    const displayName = userDoc.exists()
-      ? (userDoc.data().displayName as string | undefined)
-      : undefined
-
-    return displayName?.trim() || fallback?.trim() || 'Unbekannter Benutzer'
-  } catch {
-    return fallback?.trim() || 'Unbekannter Benutzer'
-  }
-}
-
 export const participationService = {
   async join(
     participation: Omit<Participation, 'id' | 'joinedAt'>
@@ -51,7 +35,7 @@ export const participationService = {
     const participationId = createParticipationId(concertId!, userId)
     const participationRef = getParticipationRef(concertId!, userId)
 
-    const displayName = await resolveUserDisplayName(
+    const displayName = await userService.resolveDisplayName(
       userId,
       participation.displayName
     )
@@ -100,7 +84,7 @@ export const participationService = {
       const fixes = participations
         .filter((p) => !p.displayName || p.displayName.trim().length === 0)
         .map(async (p) => {
-          const resolved = await resolveUserDisplayName(p.userId)
+          const resolved = await userService.resolveDisplayName(p.userId)
           p.displayName = resolved
           updateDoc(
             doc(

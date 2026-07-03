@@ -17,6 +17,7 @@ import { useState } from 'react'
 import { Concert } from '@/entities/concert'
 import { Participation } from '@/entities/participation'
 import { Chip, ConcertHero, genreOf, GenrePill } from '@/shared/ui'
+import { ConcertComments } from '@/widgets/concert-comments'
 import { CarpoolTab } from '@/widgets/participant-list'
 import { TicketList } from '@/widgets/ticket-list'
 
@@ -449,6 +450,10 @@ export const ConcertDetails = ({
         )}
         {tab === 'carpool' && (
           <CarpoolTab concert={concert} participations={participations} />
+        )}
+
+        {concert.id && (
+          <ConcertComments concert={concert} participations={participations} />
         )}
       </div>
 

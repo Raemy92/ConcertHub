@@ -34,6 +34,39 @@ service cloud.firestore {
       allow update: if isSignedIn()
         && resource.data.createdBy == request.auth.uid;
       allow delete: if false;
+
+      // comments: every signed-in user can read. Create is restricted to the
+      // concert's creator and to current participants (a participation doc
+      // exists at `participations/{concertId}_{uid}`). The author field must
+      // match the caller, text length is 1..2000 chars, createdAt must be the
+      // server timestamp, and only the four expected fields may be present.
+      // Updates are allowed only by the original author and only to `text` /
+      // `updatedAt` (server timestamp); other fields are pinned. Deletes are
+      // forbidden. Update is not gated on current participation so an author
+      // whose participation later goes away can still fix typos in their own
+      // past comments.
+      match /comments/{commentId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn()
+          && request.resource.data.keys().hasOnly(['text', 'authorId', 'authorDisplayName', 'createdAt'])
+          && request.resource.data.authorId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() >= 1
+          && request.resource.data.text.size() <= 2000
+          && request.resource.data.createdAt == request.time
+          && (
+            get(/databases/$(database)/documents/concerts/$(concertId)).data.createdBy == request.auth.uid
+            || exists(/databases/$(database)/documents/participations/$(concertId + '_' + request.auth.uid))
+          );
+        allow update: if isSignedIn()
+          && resource.data.authorId == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'updatedAt'])
+          && request.resource.data.text is string
+          && request.resource.data.text.size() >= 1
+          && request.resource.data.text.size() <= 2000
+          && request.resource.data.updatedAt == request.time;
+        allow delete: if false;
+      }
     }
 
     // participations: id convention is `${concertId}_${userId}`. A user can
