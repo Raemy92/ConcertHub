@@ -15,6 +15,7 @@ interface CarpoolTabProps {
 export const CarpoolTab = ({ concert, participations }: CarpoolTabProps) => {
   const { user } = useAuth()
   const [showJoinModal, setShowJoinModal] = useState(false)
+  const [showDriverModal, setShowDriverModal] = useState(false)
   const [busy, setBusy] = useState(false)
 
   const me = participations.find((p) => p.userId === user?.uid)
@@ -68,7 +69,7 @@ export const CarpoolTab = ({ concert, participations }: CarpoolTabProps) => {
     }
   }
 
-  const handleBecomeDriver = (isDriver: boolean, seats: number) => {
+  const handleJoinNew = (isDriver: boolean, seats: number) => {
     if (!user || !concert.id) return
     setShowJoinModal(false)
     const resolvedDisplayName =
@@ -81,7 +82,27 @@ export const CarpoolTab = ({ concert, participations }: CarpoolTabProps) => {
         isDriver,
         ...(isDriver && { availableSeats: seats })
       })
+      .catch((err) => console.error('Error joining concert:', err))
+  }
+
+  // Promote the existing participation to driver in place — keeps the ticket and
+  // any other state instead of leaving and re-joining.
+  const handleBecomeDriver = (_isDriver: boolean, seats: number) => {
+    if (!user || !concert.id) return
+    setShowDriverModal(false)
+    void participationService
+      .becomeDriver(concert.id, user.uid, seats)
       .catch((err) => console.error('Error becoming driver:', err))
+  }
+
+  const handleStopDriving = async () => {
+    if (!user || !concert.id) return
+    setBusy(true)
+    try {
+      await participationService.stopDriving(concert.id, user.uid)
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
@@ -298,53 +319,6 @@ export const CarpoolTab = ({ concert, participations }: CarpoolTabProps) => {
         )
       })}
 
-      {unassigned.length > 0 && (
-        <div
-          style={{
-            padding: 12,
-            borderRadius: 12,
-            border: '0.5px dashed rgba(255,255,255,0.1)'
-          }}
-        >
-          <div
-            className="font-semibold uppercase mb-2"
-            style={{
-              fontSize: 11,
-              color: 'rgba(255,255,255,0.45)',
-              letterSpacing: 0.6
-            }}
-          >
-            Braucht eine Mitfahrt · {unassigned.length}
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            {unassigned.map((p) => (
-              <div
-                key={p.userId}
-                className="inline-flex items-center"
-                style={{
-                  gap: 5,
-                  padding: '3px 10px 3px 3px',
-                  borderRadius: 999,
-                  background: 'rgba(255,176,32,0.06)',
-                  border: '0.5px solid rgba(255,176,32,0.18)'
-                }}
-              >
-                <Avatar name={getName(p)} size={20} />
-                <span
-                  style={{
-                    fontSize: 11.5,
-                    fontWeight: 500,
-                    color: '#ffb020'
-                  }}
-                >
-                  {getName(p).split(' ')[0]}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {!me && (
         <button
           onClick={() => setShowJoinModal(true)}
@@ -366,16 +340,7 @@ export const CarpoolTab = ({ concert, participations }: CarpoolTabProps) => {
 
       {me && !me.isDriver && (
         <button
-          onClick={async () => {
-            if (!user || !concert.id) return
-            setBusy(true)
-            try {
-              await participationService.leave(concert.id, user.uid)
-              setShowJoinModal(true)
-            } finally {
-              setBusy(false)
-            }
-          }}
+          onClick={() => setShowDriverModal(true)}
           disabled={busy}
           className="cursor-pointer flex items-center justify-center gap-2 font-semibold"
           style={{
@@ -392,11 +357,39 @@ export const CarpoolTab = ({ concert, participations }: CarpoolTabProps) => {
         </button>
       )}
 
+      {me && me.isDriver && (
+        <button
+          onClick={handleStopDriving}
+          disabled={busy}
+          className="cursor-pointer flex items-center justify-center gap-2 font-semibold"
+          style={{
+            padding: '12px 14px',
+            borderRadius: 14,
+            border: '0.5px solid rgba(255,255,255,0.12)',
+            background: 'rgba(255,255,255,0.03)',
+            color: 'rgba(255,255,255,0.7)',
+            fontSize: 13.5
+          }}
+        >
+          <X size={16} />
+          Ich fahre doch nicht
+        </button>
+      )}
+
       <JoinConcertModal
         isOpen={showJoinModal}
         loading={busy}
         onClose={() => setShowJoinModal(false)}
+        onConfirm={handleJoinNew}
+      />
+
+      <JoinConcertModal
+        isOpen={showDriverModal}
+        loading={busy}
+        onClose={() => setShowDriverModal(false)}
         onConfirm={handleBecomeDriver}
+        driverOnly
+        title="Fahrer werden"
       />
     </div>
   )

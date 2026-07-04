@@ -128,7 +128,7 @@ export const ParticipantsTab = ({
             borderRadius: 14
           }}
         >
-          Sei der erste - teile das mit der Crew
+          Noch niemand sonst dabei.
         </div>
       ) : (
         others.map((p) => (

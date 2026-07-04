@@ -1,6 +1,7 @@
 export interface NotificationPrefs {
   newConcert: boolean
   newParticipant: boolean
+  newComment?: boolean
 }
 
 export interface NotificationPayload {

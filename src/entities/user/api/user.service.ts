@@ -6,6 +6,8 @@ import { NotificationPrefs, User } from '../model/types'
 
 const USERS_COLLECTION = 'users'
 
+const UNKNOWN_USER_NAME = 'Unbekannter Benutzer'
+
 export const userService = {
   async getById(uid: string): Promise<User | null> {
     const snap = await getDoc(doc(db, USERS_COLLECTION, uid))
@@ -32,5 +34,18 @@ export const userService = {
       { notificationPrefs: prefs },
       { merge: true }
     )
+  },
+
+  async resolveDisplayName(uid: string, fallback?: string): Promise<string> {
+    try {
+      const userDoc = await getDoc(doc(db, USERS_COLLECTION, uid))
+      const displayName = userDoc.exists()
+        ? (userDoc.data().displayName as string | undefined)
+        : undefined
+
+      return displayName?.trim() || fallback?.trim() || UNKNOWN_USER_NAME
+    } catch {
+      return fallback?.trim() || UNKNOWN_USER_NAME
+    }
   }
 }

@@ -47,6 +47,16 @@ export const concertService = {
     })) as Concert[]
   },
 
+  // Whole collection, unfiltered — includes archived and future concerts.
+  // Year / past filtering happens client-side in the year-stats aggregators.
+  async getAll(): Promise<Concert[]> {
+    const querySnapshot = await getDocs(collection(db, CONCERTS_COLLECTION))
+    return querySnapshot.docs.map((d) => ({
+      id: d.id,
+      ...d.data()
+    })) as Concert[]
+  },
+
   async getById(id: string): Promise<Concert | null> {
     const docRef = doc(db, CONCERTS_COLLECTION, id)
     const docSnap = await getDoc(docRef)

@@ -1,4 +1,5 @@
 import {
+  BarChart3,
   CalendarClock,
   History,
   LogOut,
@@ -139,6 +140,10 @@ export const AppSidebar = ({ onCreate }: AppSidebarProps) => {
       <NavLink to="/archive" style={navItemStyle}>
         <History size={16} />
         Archiv
+      </NavLink>
+      <NavLink to="/stats" style={navItemStyle}>
+        <BarChart3 size={16} />
+        Statistik
       </NavLink>
       <NavLink to="/settings" style={navItemStyle}>
         <Settings size={16} />

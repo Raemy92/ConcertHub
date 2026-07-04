@@ -48,7 +48,7 @@ ConcertHub is a **React 19 + TypeScript + Firebase** PWA for managing concert at
 Each entity slice follows `model/types.ts` + `api/<name>.service.ts`:
 
 - `entities/concert/` — Concert type + CRUD service (`getAllUpcoming`, `getById`, `create`, `update`, `archive`)
-- `entities/participation/` — Participation type + service (`join`, `leave`, `subscribeByConcert`, `assignPassenger`, `removePassenger`, `updateTicketStatus`)
+- `entities/participation/` — Participation type + service (`join`, `leave`, `subscribeByConcert`, `assignPassenger`, `removePassenger`, `becomeDriver`, `stopDriving`, `updateTicketStatus`)
 
 ### Data flow
 
@@ -59,7 +59,7 @@ Each entity slice follows `model/types.ts` + `api/<name>.service.ts`:
 ### Key domain concepts
 
 - **Concert**: A gig with band info, location, date/time, price, and an `isArchived` flag.
-- **Participation**: Links a user to a concert, tracks `hasTicket`, `isDriver`, `availableSeats`, and `driverId` (for carpooling passengers). Document ID convention: `${concertId}_${userId}`.
+- **Participation**: Links a user to a concert, tracks `hasTicket`, `isDriver`, `availableSeats`, and `driverId` (for carpooling passengers), plus `ticketPurchasedBy` for ticket-purchase tracking (see "Ticket purchase tracking"). Document ID convention: `${concertId}_${userId}`. Switching driver status happens **in place** on the existing doc — `becomeDriver` / `stopDriving` (never leave + re-join), so `hasTicket` and other state survive. `becomeDriver` clears any passenger assignment (`driverId`); `stopDriving` releases all of that driver's passengers.
 
 ### Routing
 
@@ -89,10 +89,33 @@ The app ships as a PWA via `vite-plugin-pwa` configured in `strategies: 'injectM
 ### Push notifications
 
 - **Client**: `src/shared/notifications/notifications.service.ts` handles permission prompt, FCM token registration (`getToken` with the VAPID key from `VITE_FIREBASE_VAPID_KEY`), and unregister. Tokens live at `users/{uid}/fcmTokens/{tokenId}` in Firestore.
-- **UI**: `src/features/notification-settings/` + `/settings` route (via `src/views/settings/`) lets users opt in and toggle two categories: `newConcert` and `newParticipant`. Preferences persist on `users/{uid}.notificationPrefs`.
-- **Server**: Firestore triggers in `functions/` (Cloud Functions v2, `europe-west1`, Node 20) fan out push notifications. `onConcertCreate` pings opted-in users when a concert is created (excluding the creator). `onParticipationCreate` pings the concert creator and co-participants when someone joins (excluding the joiner). Invalid tokens are pruned on send.
+- **UI**: `src/features/notification-settings/` + `/settings` route (via `src/views/settings/`) lets users opt in and toggle three categories: `newConcert`, `newParticipant`, and `newComment`. Preferences persist on `users/{uid}.notificationPrefs`. `newConcert` and `newParticipant` default to `true` when the master switch is first enabled; `newComment` defaults to `false` (opt-in) and a missing field is treated as `false` server-side.
+- **Server**: Firestore triggers in `functions/` (Cloud Functions v2, `europe-west1`, Node 20) fan out push notifications. `onConcertCreate` pings opted-in users when a concert is created (excluding the creator). `onParticipationCreate` pings the concert creator and co-participants when someone joins (excluding the joiner). `onCommentCreate` pings the concert creator and all participants when a new comment is posted (excluding the author). Invalid tokens are pruned on send.
 - **Required env var**: `VITE_FIREBASE_VAPID_KEY` — generate in Firebase Console → Project settings → Cloud Messaging → Web Push certificates.
 - **Deploy prerequisites**: Blaze plan (for Cloud Functions — FCM itself is free on Spark). Rules live in `firestore.rules`. Deploy order: `firebase deploy --only firestore:rules`, then `firebase deploy --only functions`.
+
+### Concert comments
+
+- **Storage**: per-concert subcollection `concerts/{concertId}/comments/{commentId}` with `{ text, authorId, authorDisplayName, createdAt, updatedAt? }`. `createdAt` and `updatedAt` are Firestore server timestamps (written via `serverTimestamp()`, enforced in the rules with `== request.time`) so ordering cannot be spoofed by clients; the service converts them to ms epoch numbers on read. `authorDisplayName` is resolved at write time via `userService.resolveDisplayName(uid, fallback)` — same shared helper the participation service uses; it reads `users/{uid}.displayName` and falls back to the caller-supplied name.
+- **Service**: `src/entities/comment/api/comment.service.ts` exposes `subscribeByConcert`, `post`, and `edit`. Comments are ordered by `createdAt` ascending. The schema caps text length at 1–2000 chars (enforced in both the service and the security rules).
+- **Posting access**: only the concert's creator or a current participant (a doc at `participations/{concertId}_{uid}`) can create comments — enforced both client-side (the input bar is hidden with a hint) and server-side in `firestore.rules`. Editing an own comment is **not** re-gated on participation, so an author who later leaves the concert can still fix typos in their old comments. The rules also lock down the writable field set: create allows only `text/authorId/authorDisplayName/createdAt`; update allows only changes to `text` and `updatedAt`.
+- **UI**: `src/widgets/concert-comments/` is a collapsible accordion mounted at the bottom of the concert detail view. Reads are open to every signed-in user. Own comments render right-aligned with the accent color; others render left-aligned with a deterministic per-author color from `src/shared/ui/user-color/`. Authors can edit (but not delete) their own comments; edited entries show "(bearbeitet)" next to the timestamp.
+- **Notifications**: opt-in `newComment` category triggers `onCommentCreate` in `functions/src/triggers/on-comment-create.ts` — fans out to the concert creator + all current participants, minus the author, filtered by `notificationPrefs.newComment == true`. Body is `"{author} ({band}): {first 80 chars of text}"`; tap routes to `/concert/{id}`.
+
+### Ticket purchase tracking
+
+- **Data model**: one optional field on `participations` — `ticketPurchasedBy?: string` (uid of whoever bought the ticket; unset or equal to `userId` means self-bought). Existing docs without it render as self-bought with no annotation — no migration needed. There is deliberately **no** paid/unpaid tracking: the app only records _who bought_ a ticket, settling money is left to the group.
+- **Self-purchase via the own toggle**: toggling your own "Ich habe mein Ticket" on the Dabei tab (`updateTicketStatus`) always clears `ticketPurchasedBy` — setting your own ticket to "have it" counts as buying it yourself. This is the only way to take a ticket back from a buyer (there is no separate "Selbst gekauft" action).
+- **Service** (`entities/participation`): `bulkAssignTickets(concertId, buyerUid, targetUids)` (batched `merge` set of `hasTicket/ticketPurchasedBy`) and `updateTicketStatus` (own toggle, clears the buyer link as above).
+- **Relaxed write rules** (`firestore.rules`, `match /participations`): any participant of a concert may update **only** `hasTicket`, `ticketPurchasedBy` on **any** participation for that concert, with `ticketPurchasedBy` (when present) constrained to `request.auth.uid` — you can only mark yourself as buyer (enforced with `.get('ticketPurchasedBy', request.auth.uid)`). Create/delete stay own-doc-only. This trades strict per-user authz for convenience in a small trusted friend group; deploy the rules **before** shipping the UI. Rules unit tests live in the `harden-firestore-writes` change.
+- **Flows / UI**: the "Tickets" tab (`widgets/ticket-list`) is read-only — rows are not clickable. It has a "Tickets für andere gekauft" button opening `features/ticket-purchase`, a single checklist of current participants who still need a ticket (buying for someone who isn't a participant yet is out of scope — they join themselves first). Each ticket row bought for someone else shows a "gekauft von {buyer}" annotation. Users change their **own** ticket status on the Dabei tab.
+
+### Yearly statistics
+
+- **Route/View**: protected `/stats` (registered in `src/app/app.ui.tsx` under the `MainLayout` branch, reachable from `app-sidebar` + `mobile-nav-drawer` via a "Statistik" entry). The view lives at `src/views/statistics/` and holds only the year-selector state plus the two-read fetch; the tile grid is `src/widgets/year-statistics/`.
+- **Aggregation logic**: `src/shared/lib/year-stats/` — pure functions `(concerts, participations, viewerUid, year) → result`, one file per stat (`total-concerts`, `best-month`, `top-buddies`, `top-genre`, `carpool-balance`, `new-locations`, `first-and-last-show`), composed by `computeYearStats` in `year-stats.ts`. `helpers.ts` holds the "attended" predicate (`attendedInYear`) and `availableYears`. All unit-tested; no Firestore mocks needed. Add or remove a stat by adding/removing a function + tile, not by touching the others.
+- **What counts**: a concert is "attended" for `(viewer, year)` iff the viewer has a `participations` doc for it, its `date` is within the selected calendar year (local time), and its `date` is strictly in the past. Archival status is **not** a gate. The year selector lists years the viewer has any participation in (past or future) plus the current year unconditionally, descending.
+- **Data loading**: two one-shot `getDocs` reads on mount — `concertService.getAll()` (whole collection, **incl. archived**, unlike `getAllPast`) and `participationService.getAll()` (whole collection, **all users** — needed because "Top 3 Buddies" is a co-attendance stat). No `onSnapshot`; a yearly retrospective is a snapshot, not a live view. Everything is computed client-side; no new schema, index, or Cloud Function.
 
 ### Deploy
 
