@@ -48,7 +48,7 @@ ConcertHub is a **React 19 + TypeScript + Firebase** PWA for managing concert at
 Each entity slice follows `model/types.ts` + `api/<name>.service.ts`:
 
 - `entities/concert/` — Concert type + CRUD service (`getAllUpcoming`, `getById`, `create`, `update`, `archive`)
-- `entities/participation/` — Participation type + service (`join`, `leave`, `subscribeByConcert`, `assignPassenger`, `removePassenger`, `updateTicketStatus`)
+- `entities/participation/` — Participation type + service (`join`, `leave`, `subscribeByConcert`, `assignPassenger`, `removePassenger`, `becomeDriver`, `stopDriving`, `updateTicketStatus`)
 
 ### Data flow
 
@@ -59,7 +59,7 @@ Each entity slice follows `model/types.ts` + `api/<name>.service.ts`:
 ### Key domain concepts
 
 - **Concert**: A gig with band info, location, date/time, price, and an `isArchived` flag.
-- **Participation**: Links a user to a concert, tracks `hasTicket`, `isDriver`, `availableSeats`, and `driverId` (for carpooling passengers), plus `ticketPurchasedBy` for ticket-purchase tracking (see "Ticket purchase tracking"). Document ID convention: `${concertId}_${userId}`.
+- **Participation**: Links a user to a concert, tracks `hasTicket`, `isDriver`, `availableSeats`, and `driverId` (for carpooling passengers), plus `ticketPurchasedBy` for ticket-purchase tracking (see "Ticket purchase tracking"). Document ID convention: `${concertId}_${userId}`. Switching driver status happens **in place** on the existing doc — `becomeDriver` / `stopDriving` (never leave + re-join), so `hasTicket` and other state survive. `becomeDriver` clears any passenger assignment (`driverId`); `stopDriving` releases all of that driver's passengers.
 
 ### Routing
 

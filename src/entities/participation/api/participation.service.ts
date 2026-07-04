@@ -106,6 +106,44 @@ export const participationService = {
     })
   },
 
+  // Promote an existing participation to driver in place — preserves hasTicket,
+  // ticketPurchasedBy and everything else. Any previous passenger assignment is
+  // cleared, since a driver can't also be someone else's passenger.
+  async becomeDriver(
+    concertId: string,
+    userId: string,
+    seats: number
+  ): Promise<void> {
+    const participationRef = getParticipationRef(concertId, userId)
+    await updateDoc(participationRef, {
+      isDriver: true,
+      availableSeats: seats,
+      driverId: null
+    })
+  },
+
+  // Demote a driver back to a plain participant in place. Every passenger that
+  // was assigned to this driver is released (driverId cleared); the driver's own
+  // ticket and other fields are untouched.
+  async stopDriving(concertId: string, userId: string): Promise<void> {
+    const passengersQuery = query(
+      collection(db, PARTICIPATIONS_COLLECTION),
+      where('concertId', '==', concertId),
+      where('driverId', '==', userId)
+    )
+    const passengersSnapshot = await getDocs(passengersQuery)
+
+    const batch = writeBatch(db)
+    passengersSnapshot.docs.forEach((d) =>
+      batch.update(doc(db, PARTICIPATIONS_COLLECTION, d.id), { driverId: null })
+    )
+    batch.update(getParticipationRef(concertId, userId), {
+      isDriver: false,
+      availableSeats: deleteField()
+    })
+    await batch.commit()
+  },
+
   async assignPassenger(
     concertId: string,
     driverId: string,
