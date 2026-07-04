@@ -1,6 +1,7 @@
 import {
   collection,
   deleteDoc,
+  deleteField,
   doc,
   DocumentReference,
   getDocs,
@@ -8,7 +9,8 @@ import {
   query,
   setDoc,
   updateDoc,
-  where
+  where,
+  writeBatch
 } from 'firebase/firestore'
 
 import { db } from '@/shared/api/firebase/config'
@@ -104,6 +106,44 @@ export const participationService = {
     })
   },
 
+  // Promote an existing participation to driver in place — preserves hasTicket,
+  // ticketPurchasedBy and everything else. Any previous passenger assignment is
+  // cleared, since a driver can't also be someone else's passenger.
+  async becomeDriver(
+    concertId: string,
+    userId: string,
+    seats: number
+  ): Promise<void> {
+    const participationRef = getParticipationRef(concertId, userId)
+    await updateDoc(participationRef, {
+      isDriver: true,
+      availableSeats: seats,
+      driverId: null
+    })
+  },
+
+  // Demote a driver back to a plain participant in place. Every passenger that
+  // was assigned to this driver is released (driverId cleared); the driver's own
+  // ticket and other fields are untouched.
+  async stopDriving(concertId: string, userId: string): Promise<void> {
+    const passengersQuery = query(
+      collection(db, PARTICIPATIONS_COLLECTION),
+      where('concertId', '==', concertId),
+      where('driverId', '==', userId)
+    )
+    const passengersSnapshot = await getDocs(passengersQuery)
+
+    const batch = writeBatch(db)
+    passengersSnapshot.docs.forEach((d) =>
+      batch.update(doc(db, PARTICIPATIONS_COLLECTION, d.id), { driverId: null })
+    )
+    batch.update(getParticipationRef(concertId, userId), {
+      isDriver: false,
+      availableSeats: deleteField()
+    })
+    await batch.commit()
+  },
+
   async assignPassenger(
     concertId: string,
     driverId: string,
@@ -118,13 +158,37 @@ export const participationService = {
     await updateDoc(participationRef, { driverId: null })
   },
 
+  // Toggling one's own ticket status always counts as a self-purchase, so any
+  // foreign buyer link is cleared — "I have my ticket" means I got it myself.
   async updateTicketStatus(
     concertId: string,
     userId: string,
     hasTicket: boolean
   ): Promise<void> {
     const participationRef = getParticipationRef(concertId, userId)
-    await updateDoc(participationRef, { hasTicket })
+    await updateDoc(participationRef, {
+      hasTicket,
+      ticketPurchasedBy: deleteField()
+    })
+  },
+
+  // Buyer marks one or more existing participants as having a ticket they
+  // purchased. Batched so the whole assignment lands atomically.
+  async bulkAssignTickets(
+    concertId: string,
+    buyerUid: string,
+    targetUids: string[]
+  ): Promise<void> {
+    if (targetUids.length === 0) return
+    const batch = writeBatch(db)
+    targetUids.forEach((uid) => {
+      batch.set(
+        getParticipationRef(concertId, uid),
+        { hasTicket: true, ticketPurchasedBy: buyerUid },
+        { merge: true }
+      )
+    })
+    await batch.commit()
   },
 
   subscribeConcertIdsByUser(

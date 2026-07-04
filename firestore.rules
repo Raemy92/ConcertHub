@@ -75,16 +75,31 @@ service cloud.firestore {
     // user if the write only touches the `driverId` field — this lets a
     // driver assign/remove passengers and lets a leaving driver clear
     // driverId on passenger docs.
+    //
+    // Ticket-purchase tracking relaxes updates: any participant of a concert
+    // may update only the ticket-related fields (`hasTicket`,
+    // `ticketPurchasedBy`) on any participation for that concert, and
+    // `ticketPurchasedBy`, when present, must equal the caller — you can only
+    // mark yourself as the buyer.
     match /participations/{participationId} {
       allow read: if isSignedIn();
+
       allow create: if isSignedIn()
         && request.resource.data.userId == request.auth.uid
         && participationId == request.resource.data.concertId + '_' + request.auth.uid;
+
       allow update: if isSignedIn()
         && (
           resource.data.userId == request.auth.uid
           || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['driverId'])
         );
+      // any participant of the concert may update only the ticket-related fields
+      // on any participation for that concert
+      allow update: if isSignedIn()
+        && exists(/databases/$(database)/documents/participations/$(resource.data.concertId + '_' + request.auth.uid))
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hasTicket', 'ticketPurchasedBy'])
+        && request.resource.data.get('ticketPurchasedBy', request.auth.uid) == request.auth.uid;
+
       allow delete: if isSignedIn()
         && resource.data.userId == request.auth.uid;
     }

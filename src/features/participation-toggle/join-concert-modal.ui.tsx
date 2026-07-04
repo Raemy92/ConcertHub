@@ -8,15 +8,22 @@ interface JoinConcertModalProps {
   loading: boolean
   onClose: () => void
   onConfirm: (isDriver: boolean, seats: number) => void
+  // When true the driver toggle is hidden and driving is pre-selected — used
+  // for the "Fahrer werden" flow where the user already committed to driving
+  // and only needs to pick the number of seats.
+  driverOnly?: boolean
+  title?: string
 }
 
 export const JoinConcertModal = ({
   isOpen,
   loading,
   onClose,
-  onConfirm
+  onConfirm,
+  driverOnly = false,
+  title = 'Anmeldung'
 }: JoinConcertModalProps) => {
-  const [isDriver, setIsDriver] = useState(false)
+  const [isDriver, setIsDriver] = useState(driverOnly)
   const [seats, setSeats] = useState(3)
 
   const handleConfirm = () => {
@@ -24,79 +31,83 @@ export const JoinConcertModal = ({
   }
 
   const handleClose = () => {
-    setIsDriver(false)
+    setIsDriver(driverOnly)
     setSeats(3)
     onClose()
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Anmeldung">
+    <Modal isOpen={isOpen} onClose={handleClose} title={title}>
       <div className="flex flex-col gap-5">
-        <button
-          type="button"
-          onClick={() => setIsDriver((prev) => !prev)}
-          className="flex items-center justify-between w-full cursor-pointer transition-all"
-          style={{
-            padding: 14,
-            borderRadius: 14,
-            background: isDriver
-              ? 'rgba(124,255,178,0.06)'
-              : 'rgba(255,255,255,0.03)',
-            border: isDriver
-              ? '0.5px solid rgba(124,255,178,0.25)'
-              : '0.5px solid rgba(255,255,255,0.08)'
-          }}
-        >
-          <div className="flex items-center gap-3">
-            <div
-              className="flex items-center justify-center"
-              style={{
-                width: 34,
-                height: 34,
-                borderRadius: 10,
-                background: isDriver
-                  ? 'rgba(124,255,178,0.15)'
-                  : 'rgba(255,255,255,0.05)',
-                color: isDriver ? 'var(--accent)' : 'rgba(255,255,255,0.7)'
-              }}
-            >
-              <Car size={16} />
-            </div>
-            <div className="text-left">
-              <div
-                className="font-semibold text-white"
-                style={{ fontSize: 14 }}
-              >
-                Ich fahre mit dem Auto
-              </div>
-              <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.5)' }}>
-                {isDriver ? 'Plätze festlegen' : 'Antippen zum Aktivieren'}
-              </div>
-            </div>
-          </div>
-          <div
-            className="flex items-center transition-colors"
+        {!driverOnly && (
+          <button
+            type="button"
+            onClick={() => setIsDriver((prev) => !prev)}
+            className="flex items-center justify-between w-full cursor-pointer transition-all"
             style={{
-              width: 44,
-              height: 26,
-              borderRadius: 999,
-              padding: 2,
-              background: isDriver ? 'var(--accent)' : 'rgba(255,255,255,0.12)'
+              padding: 14,
+              borderRadius: 14,
+              background: isDriver
+                ? 'rgba(124,255,178,0.06)'
+                : 'rgba(255,255,255,0.03)',
+              border: isDriver
+                ? '0.5px solid rgba(124,255,178,0.25)'
+                : '0.5px solid rgba(255,255,255,0.08)'
             }}
           >
+            <div className="flex items-center gap-3">
+              <div
+                className="flex items-center justify-center"
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: 10,
+                  background: isDriver
+                    ? 'rgba(124,255,178,0.15)'
+                    : 'rgba(255,255,255,0.05)',
+                  color: isDriver ? 'var(--accent)' : 'rgba(255,255,255,0.7)'
+                }}
+              >
+                <Car size={16} />
+              </div>
+              <div className="text-left">
+                <div
+                  className="font-semibold text-white"
+                  style={{ fontSize: 14 }}
+                >
+                  Ich fahre mit dem Auto
+                </div>
+                <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.5)' }}>
+                  {isDriver ? 'Plätze festlegen' : 'Antippen zum Aktivieren'}
+                </div>
+              </div>
+            </div>
             <div
-              className="transition-transform"
+              className="flex items-center transition-colors"
               style={{
-                width: 22,
-                height: 22,
+                width: 44,
+                height: 26,
                 borderRadius: 999,
-                background: '#fff',
-                transform: isDriver ? 'translateX(18px)' : 'translateX(0)',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.25)'
+                padding: 2,
+                background: isDriver
+                  ? 'var(--accent)'
+                  : 'rgba(255,255,255,0.12)'
               }}
-            />
-          </div>
-        </button>
+            >
+              <div
+                className="transition-transform"
+                style={{
+                  width: 22,
+                  height: 22,
+                  borderRadius: 999,
+                  background: '#fff',
+                  transform: isDriver ? 'translateX(18px)' : 'translateX(0)',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.25)'
+                }}
+              />
+            </div>
+          </button>
+        )}
 
         {isDriver && (
           <div

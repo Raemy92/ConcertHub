@@ -8,4 +8,5 @@ export interface Participation {
   driverId?: string
   joinedAt: number
   hasTicket?: boolean
+  ticketPurchasedBy?: string
 }
