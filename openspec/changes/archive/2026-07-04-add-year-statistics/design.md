@@ -1,6 +1,6 @@
 ## Context
 
-ConcertHub already loads `concerts` (upcoming + archive) and per-user `participations` for the home and detail views. Stats can be computed entirely client-side from data the app fetches anyway — the only new question is which time slice to consider and how to aggregate.
+ConcertHub already reads the `concerts` and `participations` collections for the home and detail views, but never the full slice the stats view needs at once: the home "past" tab excludes archived concerts (`getAllPast` filters `isArchived == false`), and per-concert participation listeners only cover the concerts of the currently open tab. Stats are still computed entirely client-side and introduce no new schema or backend — but the view must load a bit more than the home view: the viewer's full attended history and, for co-attendance, everyone else's participations too. How that data is loaded (and why cheaply) is Decision 9.
 
 The view's audience is a friend group, not a power-user dashboard. Anything fancier than "one big number per tile" loses people.
 
@@ -101,6 +101,26 @@ src/shared/lib/year-stats/
 **Why:** Reuses existing infrastructure. The slight UX wart (close goes to home, not back to stats) is acceptable for v1; can be fixed later by stacking the modal over the stats view too.
 
 **Future:** If this becomes annoying, register `/stats/concert/:id` as a sibling nested route reusing the same modal component.
+
+### Decision 9: Load the data as two one-shot `getDocs` reads of the whole collections, not per-concert realtime listeners
+
+**Choice:** When the stats view mounts, fetch the data with exactly two one-shot reads:
+
+- `getDocs` of the whole `concerts` collection (a new `concertService.getAll()` — no `isArchived` / date filter, so archived past concerts are included), and
+- `getDocs` of the whole `participations` collection (a new `participationService.getAll()`).
+
+Then compute everything client-side. The viewer's own participations and every co-attendee's participations both come out of that single participations read; no per-concert query and no `where('concertId', 'in', …)` chunking (which is capped at 30 and would need splitting).
+
+**Why:**
+
+- **Correctness:** "Top 3 Buddies" is a co-attendance stat, so it needs the participations of _other_ users on each attended concert — not just the viewer's. A viewer-only participation query (e.g. `where('userId', '==', viewerUid)`) cannot compute it. Reading the whole participations collection is the simplest sufficient source. (The stats scenarios that require it are covered in the spec.)
+- **Archived history:** the year's older concerts are typically archived, and no existing query returns archived concerts, so `getAll()` (unfiltered) is required to see them.
+- **Cost stays trivial:** for a 12-person group the whole `concerts` and `participations` collections are small (order hundreds of docs), so a visit is a few hundred reads — see the cost note in the proposal. Reading whole collections is fine at this scale and stays well inside the free tier.
+- **One-shot over realtime:** a yearly retrospective is a snapshot, not a live dashboard — it does not need to re-render when someone joins a concert mid-view. `getDocs` gives a bounded, fixed read per visit; `onSnapshot` would open long-lived listeners for no benefit. The home view's per-concert `onSnapshot` fan-out is deliberately _not_ reused here.
+
+**Trade-off:** the numbers are as of page load; a refresh (or re-navigation) picks up new data. Acceptable for this view. Both read rules already permit it — `concerts` and `participations` are `read: if isSignedIn()`.
+
+**Scale note:** whole-collection reads scale with total history, not with the selected year. For this friend group that is fine for years. If the collections ever grew large enough to matter, the fetch could be narrowed (e.g. participations by `where('userId','==', viewerUid)` for the viewer's own carpool stats plus a chunked `where('concertId','in', …)` for co-attendees) without changing any aggregator — the pure functions take the same in-memory arrays regardless of how they were fetched.
 
 ## Risks / Trade-offs
 

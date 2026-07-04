@@ -15,6 +15,7 @@ import { Home } from '@/views/home'
 import { Login } from '@/views/login'
 import { Register } from '@/views/register'
 import { Settings } from '@/views/settings'
+import { Statistics } from '@/views/statistics'
 
 import { MainLayout } from './layouts/main-layout'
 import { AuthProvider, useAuth } from './providers/auth.provider'
@@ -52,6 +53,7 @@ const App = () => {
               <Route path="concert/:id" />
             </Route>
             <Route path="/settings" element={<Settings />} />
+            <Route path="/stats" element={<Statistics />} />
           </Route>
         </Routes>
       </BrowserRouter>

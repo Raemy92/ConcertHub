@@ -190,10 +190,10 @@ When the total-concerts count for the (viewer, selectedYear) is zero, the view S
 
 ### Requirement: Stats compute purely from existing data, no new storage
 
-The statistics view SHALL compute all values from the `concerts` and `participations` collections that the app already reads, without requiring any new Firestore fields, collections, indexes, or Cloud Functions.
+The statistics view SHALL compute all values client-side from the existing `concerts` and `participations` collections, without requiring any new Firestore fields, collections, indexes, or Cloud Functions. It MAY read more of those existing collections than other views currently do (archived concerts and all users' participations, for co-attendance), fetched as one-shot reads on view load; it SHALL NOT introduce new stored data or backend triggers.
 
 #### Scenario: No new schema or backend pieces are introduced
 
 - **WHEN** the change is implemented
-- **THEN** no migration, no new collection, no new field, no new Cloud Function is required to render any stat
-- **AND** all stats are computed in the client from the existing snapshot data
+- **THEN** no migration, no new collection, no new field, no new index, no new Cloud Function is required to render any stat
+- **AND** all stats are computed in the client from the existing `concerts` and `participations` documents

@@ -191,6 +191,18 @@ export const participationService = {
     await batch.commit()
   },
 
+  // Whole collection, every user — the co-attendance source for year-stats
+  // "Top 3 Buddies". Read rule permits it (participations is read: if isSignedIn()).
+  async getAll(): Promise<Participation[]> {
+    const querySnapshot = await getDocs(
+      collection(db, PARTICIPATIONS_COLLECTION)
+    )
+    return querySnapshot.docs.map((d) => ({
+      id: d.id,
+      ...d.data()
+    })) as Participation[]
+  },
+
   subscribeConcertIdsByUser(
     userId: string,
     callback: (concertIds: Set<string>) => void
