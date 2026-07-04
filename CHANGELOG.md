@@ -1,3 +1,17 @@
+# [1.5.0](https://github.com/Raemy92/ConcertHub/compare/v1.4.0...v1.5.0) (2026-07-04)
+
+
+### Bug Fixes
+
+* **carpool:** switch driver status in place to preserve tickets ([a76c608](https://github.com/Raemy92/ConcertHub/commit/a76c6086f68e757ca957676d5c5874a6e1ebebb3))
+
+
+### Features
+
+* **comments:** add per-concert comment threads ([a5b7f2c](https://github.com/Raemy92/ConcertHub/commit/a5b7f2c7f327530eefa06da1710407431d64c297))
+* **concert:** buy tickets for others and track the buyer ([fcc6c24](https://github.com/Raemy92/ConcertHub/commit/fcc6c24e27640186e62dd1ec75ad879286818890))
+* **stats:** add yearly statistics view ([33ccb71](https://github.com/Raemy92/ConcertHub/commit/33ccb7143fb768b1f571e333014f404a2e192492))
+
 # [1.4.0](https://github.com/Raemy92/ConcertHub/compare/v1.3.0...v1.4.0) (2026-04-26)
 
 
