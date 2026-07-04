@@ -1,6 +1,7 @@
 import {
   collection,
   deleteDoc,
+  deleteField,
   doc,
   DocumentReference,
   getDocs,
@@ -8,7 +9,8 @@ import {
   query,
   setDoc,
   updateDoc,
-  where
+  where,
+  writeBatch
 } from 'firebase/firestore'
 
 import { db } from '@/shared/api/firebase/config'
@@ -118,13 +120,37 @@ export const participationService = {
     await updateDoc(participationRef, { driverId: null })
   },
 
+  // Toggling one's own ticket status always counts as a self-purchase, so any
+  // foreign buyer link is cleared — "I have my ticket" means I got it myself.
   async updateTicketStatus(
     concertId: string,
     userId: string,
     hasTicket: boolean
   ): Promise<void> {
     const participationRef = getParticipationRef(concertId, userId)
-    await updateDoc(participationRef, { hasTicket })
+    await updateDoc(participationRef, {
+      hasTicket,
+      ticketPurchasedBy: deleteField()
+    })
+  },
+
+  // Buyer marks one or more existing participants as having a ticket they
+  // purchased. Batched so the whole assignment lands atomically.
+  async bulkAssignTickets(
+    concertId: string,
+    buyerUid: string,
+    targetUids: string[]
+  ): Promise<void> {
+    if (targetUids.length === 0) return
+    const batch = writeBatch(db)
+    targetUids.forEach((uid) => {
+      batch.set(
+        getParticipationRef(concertId, uid),
+        { hasTicket: true, ticketPurchasedBy: buyerUid },
+        { merge: true }
+      )
+    })
+    await batch.commit()
   },
 
   subscribeConcertIdsByUser(

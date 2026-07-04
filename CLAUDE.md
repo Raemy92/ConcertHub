@@ -59,7 +59,7 @@ Each entity slice follows `model/types.ts` + `api/<name>.service.ts`:
 ### Key domain concepts
 
 - **Concert**: A gig with band info, location, date/time, price, and an `isArchived` flag.
-- **Participation**: Links a user to a concert, tracks `hasTicket`, `isDriver`, `availableSeats`, and `driverId` (for carpooling passengers). Document ID convention: `${concertId}_${userId}`.
+- **Participation**: Links a user to a concert, tracks `hasTicket`, `isDriver`, `availableSeats`, and `driverId` (for carpooling passengers), plus `ticketPurchasedBy` for ticket-purchase tracking (see "Ticket purchase tracking"). Document ID convention: `${concertId}_${userId}`.
 
 ### Routing
 
@@ -101,6 +101,14 @@ The app ships as a PWA via `vite-plugin-pwa` configured in `strategies: 'injectM
 - **Posting access**: only the concert's creator or a current participant (a doc at `participations/{concertId}_{uid}`) can create comments — enforced both client-side (the input bar is hidden with a hint) and server-side in `firestore.rules`. Editing an own comment is **not** re-gated on participation, so an author who later leaves the concert can still fix typos in their old comments. The rules also lock down the writable field set: create allows only `text/authorId/authorDisplayName/createdAt`; update allows only changes to `text` and `updatedAt`.
 - **UI**: `src/widgets/concert-comments/` is a collapsible accordion mounted at the bottom of the concert detail view. Reads are open to every signed-in user. Own comments render right-aligned with the accent color; others render left-aligned with a deterministic per-author color from `src/shared/ui/user-color/`. Authors can edit (but not delete) their own comments; edited entries show "(bearbeitet)" next to the timestamp.
 - **Notifications**: opt-in `newComment` category triggers `onCommentCreate` in `functions/src/triggers/on-comment-create.ts` — fans out to the concert creator + all current participants, minus the author, filtered by `notificationPrefs.newComment == true`. Body is `"{author} ({band}): {first 80 chars of text}"`; tap routes to `/concert/{id}`.
+
+### Ticket purchase tracking
+
+- **Data model**: one optional field on `participations` — `ticketPurchasedBy?: string` (uid of whoever bought the ticket; unset or equal to `userId` means self-bought). Existing docs without it render as self-bought with no annotation — no migration needed. There is deliberately **no** paid/unpaid tracking: the app only records _who bought_ a ticket, settling money is left to the group.
+- **Self-purchase via the own toggle**: toggling your own "Ich habe mein Ticket" on the Dabei tab (`updateTicketStatus`) always clears `ticketPurchasedBy` — setting your own ticket to "have it" counts as buying it yourself. This is the only way to take a ticket back from a buyer (there is no separate "Selbst gekauft" action).
+- **Service** (`entities/participation`): `bulkAssignTickets(concertId, buyerUid, targetUids)` (batched `merge` set of `hasTicket/ticketPurchasedBy`) and `updateTicketStatus` (own toggle, clears the buyer link as above).
+- **Relaxed write rules** (`firestore.rules`, `match /participations`): any participant of a concert may update **only** `hasTicket`, `ticketPurchasedBy` on **any** participation for that concert, with `ticketPurchasedBy` (when present) constrained to `request.auth.uid` — you can only mark yourself as buyer (enforced with `.get('ticketPurchasedBy', request.auth.uid)`). Create/delete stay own-doc-only. This trades strict per-user authz for convenience in a small trusted friend group; deploy the rules **before** shipping the UI. Rules unit tests live in the `harden-firestore-writes` change.
+- **Flows / UI**: the "Tickets" tab (`widgets/ticket-list`) is read-only — rows are not clickable. It has a "Tickets für andere gekauft" button opening `features/ticket-purchase`, a single checklist of current participants who still need a ticket (buying for someone who isn't a participant yet is out of scope — they join themselves first). Each ticket row bought for someone else shows a "gekauft von {buyer}" annotation. Users change their **own** ticket status on the Dabei tab.
 
 ### Deploy
 
